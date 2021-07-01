@@ -10,6 +10,7 @@ import (
 var (
 	ErrNotSetup    = fmt.Errorf("sherlock needs to bee set-up first (use sherlock setup)")
 	ErrNoSuchGroup = fmt.Errorf("provided group cannot be found (use sherlock add --group)")
+	ErrWrongKey    = fmt.Errorf("wrong partition key")
 )
 
 // FileSystem declares the functions sherlock requires to
@@ -20,7 +21,7 @@ type FileSystem interface {
 	GroupExists(name string) error
 	VaultExists(group string) error
 	ReadGroupVault(group string) ([]byte, error)
-	WriteAccount(account *Account) error
+	Write(ctx context.Context, gid string, data []byte) error
 }
 
 type Sherlock struct {
@@ -48,7 +49,10 @@ func (sh Sherlock) IsSetUp() error {
 // set which is required for every further command. Setup will create required directories
 // if those are missing
 func (sh *Sherlock) Setup(partionKey string) error {
-	vault, err := security.InitWithDefault(partionKey)
+	vault, err := security.InitWithDefault(partionKey, Group{
+		GID:      "default",
+		Accounts: make([]*Account, 0),
+	})
 	if err != nil {
 		return err
 	}
@@ -66,7 +70,10 @@ func (sh Sherlock) SetupGroup(name string, partionKey string) error {
 		return err
 	}
 
-	vault, err := security.InitWithDefault(partionKey)
+	vault, err := security.InitWithDefault(partionKey, Group{
+		GID:      name,
+		Accounts: make([]*Account, 0),
+	})
 	if err != nil {
 		return err
 	}
@@ -77,6 +84,28 @@ func (sh Sherlock) GroupExists(name string) error {
 	return sh.fileSystem.GroupExists(name)
 }
 
-func (sh *Sherlock) AddAccount(ctx context.Context, account *Account) error {
-	return fmt.Errorf("sherlock.AddAccount: not implemented")
+func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, partionKey string, gid string) error {
+	bytes, err := sh.fileSystem.ReadGroupVault(gid)
+	if err != nil {
+		return err
+	}
+	var group Group
+	if err := security.DecryptVault(bytes, partionKey, &group); err != nil {
+		return ErrWrongKey
+	}
+	if err := group.append(account); err != nil {
+		return err
+	}
+	serizalized, err := group.serizalize()
+	if err != nil {
+		return err
+	}
+	encrypted, err := security.EncryptVault(serizalized, partionKey)
+	if err != nil {
+		return err
+	}
+	if err := sh.fileSystem.Write(ctx, gid, encrypted); err != nil {
+		return err
+	}
+	return nil
 }

@@ -2,13 +2,12 @@ package fs
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
-
-	"github.com/KonstantinGasser/sherlock/internal"
 )
 
 const (
@@ -42,7 +41,7 @@ func (fs Fs) InitFs(initVault []byte) error {
 		return err
 	}
 
-	f, err := os.OpenFile(buildVaultPath(defaultGroup), os.O_CREATE|os.O_WRONLY, 0700)
+	f, err := os.OpenFile(buildVaultPath(defaultGroup), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0777)
 	if err != nil {
 		return err
 	}
@@ -58,7 +57,7 @@ func (fs Fs) CreateGroup(name string, initVault []byte) error {
 	if err := os.MkdirAll(filepath.Join(homepath(), sherlockRoot, groupsDir, name), 0777); err != nil {
 		return err
 	}
-	f, err := os.OpenFile(buildVaultPath(name), os.O_CREATE|os.O_WRONLY, 0700)
+	f, err := os.OpenFile(buildVaultPath(name), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0777)
 	if err != nil {
 		return err
 	}
@@ -92,8 +91,11 @@ func (fs Fs) VaultExists(group string) error {
 	return ErrNoSuchVault
 }
 
-func (fs Fs) WriteAccount(a *internal.Account) error {
-	return fmt.Errorf("fs.WriteAccount: not implemented")
+func (fs Fs) Write(ctx context.Context, gid string, data []byte) error {
+	if err := ioutil.WriteFile(buildVaultPath(gid), data, os.ModeAppend); err != nil {
+		return err
+	}
+	return nil
 }
 
 func buildGroupPath(group string) string {

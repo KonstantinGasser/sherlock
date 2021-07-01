@@ -1,18 +1,3 @@
-/*
-Copyright © 2021 NAME HERE <EMAIL ADDRESS>
-
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
-
-    http://www.apache.org/licenses/LICENSE-2.0
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
 package cmd
 
 import (
@@ -46,7 +31,7 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 					terminal.Error("group name required (--name)")
 					return
 				}
-				partionKey, err := terminal.ReadPassword()
+				partionKey, err := terminal.ReadPassword("partition password: ")
 				if err != nil {
 					terminal.Error(err.Error())
 					return
@@ -63,17 +48,23 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 				terminal.Error("account name required (--name)")
 				return
 			}
-			password, err := terminal.ReadPassword()
+			partionKey, err := terminal.ReadPassword("partition password: ")
 			if err != nil {
 				terminal.Error(err.Error())
 				return
 			}
-			account, err := internal.NewAccount(opts.gid, opts.name, password, opts.desc, opts.insecure)
+
+			password, err := terminal.ReadPassword("account password: ")
 			if err != nil {
 				terminal.Error(err.Error())
 				return
 			}
-			if err := sherlock.AddAccount(context.Background(), account); err != nil {
+			account, err := internal.NewAccount(opts.name, password, opts.desc, opts.insecure)
+			if err != nil {
+				terminal.Error(err.Error())
+				return
+			}
+			if err := sherlock.AddAccount(context.Background(), account, partionKey, opts.gid); err != nil {
 				terminal.Error(err.Error())
 				return
 			}

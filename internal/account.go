@@ -11,18 +11,15 @@ var (
 )
 
 type Account struct {
-	// reference to a Group if set
-	Group    string `proto:"gid"`
-	Name     string `proto:"name"`
-	Password string `proto:"password"`
-	Desc     string `proto:"desc"`
+	Name     string `json:"name"`
+	Password string `json:"password"`
+	Desc     string `json:"desc"`
 }
 
 // NewAccount creates a new Account and if insecure=false checks the password strength
 // returning an err if strength security.Low
-func NewAccount(gid, name, password, desc string, insecure bool) (*Account, error) {
+func NewAccount(name, password, desc string, insecure bool) (*Account, error) {
 	a := Account{
-		Group:    gid,
 		Name:     name,
 		Password: password,
 		Desc:     desc,
