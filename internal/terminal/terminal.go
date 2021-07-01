@@ -1,8 +1,10 @@
 package terminal
 
 import (
+	"bufio"
 	"fmt"
 	"os"
+	"strings"
 	"syscall"
 
 	"github.com/enescakir/emoji"
@@ -31,6 +33,21 @@ func ReadPassword(format string) (string, error) {
 	}
 	fmt.Print("\n")
 	return string(b), nil
+}
+
+// YesNo prompts the user with a confirm dialog. in every case except for "y"
+// (lowercase y) the return will be false
+func YesNo(format string) bool {
+	r := bufio.NewReader(os.Stdin)
+	prettyNoNewLine(color.FgRed, emoji.FaceWithMonocle, format)
+	input, _ := r.ReadString('\n')
+
+	switch strings.TrimSuffix(input, "\n") {
+	case "y":
+		return true
+	default:
+		return false
+	}
 }
 
 // pretty combines the colors and emojis and outputs a formatted string to the

@@ -31,6 +31,7 @@ func RootCmd(sherlock *internal.Sherlock) *cobra.Command {
 
 	root.AddCommand(cmdSetup(sherlock))
 	root.AddCommand(cmdAddAccount(sherlock))
+	root.AddCommand(cmdDel(sherlock))
 	root.AddCommand(cmdList(sherlock))
 	root.AddCommand(cmdGet(sherlock))
 	return root

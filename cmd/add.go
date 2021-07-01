@@ -21,10 +21,9 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 
 	add := &cobra.Command{
 		Use:   "add",
-		Short: "add account to sherlock",
+		Short: "add an account to sherlock",
 		Long:  "add and configure a new account you want to access in a secure manner",
 		Run: func(cmd *cobra.Command, args []string) {
-
 			// creation of a group
 			if opts.isGroup {
 				if opts.name == "" {
@@ -53,7 +52,6 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 				terminal.Error(err.Error())
 				return
 			}
-
 			password, err := terminal.ReadPassword("account password: ")
 			if err != nil {
 				terminal.Error(err.Error())
@@ -68,7 +66,7 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 				terminal.Error(err.Error())
 				return
 			}
-			terminal.Success("Account successfully added")
+			terminal.Success("Account %q successfully added to %q", account.Name, opts.gid)
 		},
 	}
 

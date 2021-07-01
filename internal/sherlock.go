@@ -90,6 +90,8 @@ func (sh Sherlock) GroupExists(name string) error {
 	return sh.fileSystem.GroupExists(name)
 }
 
+// AddAccount looks up the group-vault appending its accounts slice with the new account if the account does not
+// yet exists
 func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, groupKey string, gid string) error {
 	bytes, err := sh.fileSystem.ReadGroupVault(gid)
 	if err != nil {
@@ -102,11 +104,11 @@ func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, groupKey s
 	if err := group.append(account); err != nil {
 		return err
 	}
-	serizalized, err := group.serizalize()
+	serialized, err := group.serizalize()
 	if err != nil {
 		return err
 	}
-	encrypted, err := security.EncryptVault(serizalized, groupKey)
+	encrypted, err := security.EncryptVault(serialized, groupKey)
 	if err != nil {
 		return err
 	}
@@ -126,7 +128,36 @@ func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
 	if err != nil {
 		return nil, err
 	}
-	return group.find(keySet[1])
+	return group.lookup(keySet[1])
+}
+
+func (sh Sherlock) DeleteAccount(ctx context.Context, group, account string, groupKey string) error {
+	bytes, err := sh.fileSystem.ReadGroupVault(group)
+	if err != nil {
+		return err
+	}
+
+	var g Group
+	if err := security.DecryptVault(bytes, groupKey, &g); err != nil {
+		return err
+	}
+
+	if err := g.delete(account); err != nil {
+		return err
+	}
+
+	serialized, err := g.serizalize()
+	if err != nil {
+		return err
+	}
+	encrypted, err := security.EncryptVault(serialized, groupKey)
+	if err != nil {
+		return err
+	}
+	if err := sh.fileSystem.Write(ctx, group, encrypted); err != nil {
+		return err
+	}
+	return nil
 }
 
 func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {

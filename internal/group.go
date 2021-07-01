@@ -29,23 +29,38 @@ func NewGroup(name string) *Group {
 }
 
 // append appends an account to a group if it does not already exists
-func (g *Group) append(accounts ...*Account) error {
-	for _, account := range accounts {
-		if ok := g.exists(account); ok {
-			return ErrAccountExists
-		}
+func (g *Group) append(account *Account) error {
+	if ok := g.exists(account); ok {
+		return ErrAccountExists
 	}
-	g.Accounts = append(g.Accounts, accounts...)
+	g.Accounts = append(g.Accounts, account)
 	return nil
 }
 
-func (g Group) find(accountName string) (*Account, error) {
+func (g Group) lookup(accountName string) (*Account, error) {
 	for _, a := range g.Accounts {
 		if a.Name == accountName {
 			return a, nil
 		}
 	}
 	return nil, ErrNoSuchAccount
+}
+
+// delete deletes a given account from the group, returns an ErrNoSuchAccount
+// if account not present
+func (g *Group) delete(account string) error {
+	var offset *int
+	for i, a := range g.Accounts {
+		if a.Name == account {
+			offset = &i
+		}
+	}
+	if offset == nil {
+		return ErrNoSuchAccount
+	}
+
+	g.Accounts = append(g.Accounts[:*offset], g.Accounts[*offset+1:]...)
+	return nil
 }
 
 // exists checks an account is already present in the group
