@@ -16,9 +16,9 @@ func cmdSetup(sherlock *internal.Sherlock) *cobra.Command {
 				terminal.Error("sherlock is already set-up")
 				return
 			}
-			terminal.Success("sherlock has a default partition for accounts not mapped to any group.\nPlease provide a partition password for the default group.")
+			terminal.Success("sherlock has a default group for accounts not mapped to any group.\nPlease provide a group password for the default group.")
 
-			partionKey, err := terminal.ReadPassword("(default) partition password: ")
+			partionKey, err := terminal.ReadPassword("(default) group password: ")
 			if err != nil {
 				terminal.Error(err.Error())
 				return

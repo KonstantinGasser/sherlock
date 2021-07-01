@@ -12,7 +12,7 @@ type addOptions struct {
 	isGroup  bool
 	gid      string
 	name     string
-	desc     string
+	tag      string
 	insecure bool
 }
 
@@ -31,7 +31,7 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 					terminal.Error("group name required (--name)")
 					return
 				}
-				partionKey, err := terminal.ReadPassword("partition password: ")
+				partionKey, err := terminal.ReadPassword("group password: ")
 				if err != nil {
 					terminal.Error(err.Error())
 					return
@@ -48,7 +48,7 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 				terminal.Error("account name required (--name)")
 				return
 			}
-			partionKey, err := terminal.ReadPassword("partition password: ")
+			partionKey, err := terminal.ReadPassword("group password: ")
 			if err != nil {
 				terminal.Error(err.Error())
 				return
@@ -59,7 +59,7 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 				terminal.Error(err.Error())
 				return
 			}
-			account, err := internal.NewAccount(opts.name, password, opts.desc, opts.insecure)
+			account, err := internal.NewAccount(opts.name, password, opts.tag, opts.insecure)
 			if err != nil {
 				terminal.Error(err.Error())
 				return
@@ -74,7 +74,7 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 
 	add.Flags().StringVarP(&opts.gid, "gid", "g", "default", "map account to existing group")
 	add.Flags().StringVarP(&opts.name, "name", "n", "", "name of the account/group")
-	add.Flags().StringVarP(&opts.desc, "desc", "d", "", "description for the account")
+	add.Flags().StringVarP(&opts.tag, "tag", "t", "", "a tag to give some more meaning")
 	add.Flags().BoolVarP(&opts.insecure, "insecure", "i", false, "allow insecure password for account")
 	add.Flags().BoolVarP(&opts.isGroup, "group", "G", false, "add a group to organize accounts")
 

@@ -6,31 +6,28 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type listOptions struct {
-	gid string
-}
-
 func cmdList(sherlock *internal.Sherlock) *cobra.Command {
-	var opts listOptions
-	list := &cobra.Command{
+	return &cobra.Command{
 		Use:   "list",
 		Short: "setup allows to initially set-up a main password for your vault",
 		Long:  "to encrypt and decrypt your vault you will need to set-up a main password",
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			partitionKey, err := terminal.ReadPassword("partition password: ")
+			groupKey, err := terminal.ReadPassword("group password: ")
 			if err != nil {
 				terminal.Error(err.Error())
 				return
 			}
-			group, err := sherlock.LoadGroup(opts.gid, partitionKey)
+			group, err := sherlock.LoadGroup(args[0], groupKey)
 			if err != nil {
 				terminal.Error(err.Error())
 				return
 			}
-			terminal.ToTable([]string{"Group", "Account", "Desc", "Created On"}, group.Table())
+			terminal.ToTable(
+				[]string{"Group", "Account", "#Tag", "Created On"},
+				group.Table(),
+				terminal.TableWithCellMerge(0),
+			)
 		},
 	}
-	list.Flags().StringVarP(&opts.gid, "group", "G", "default", "list accounts mapped to group")
-
-	return list
 }

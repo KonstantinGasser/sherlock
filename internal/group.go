@@ -3,6 +3,7 @@ package internal
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 const (
@@ -38,7 +39,7 @@ func (g *Group) append(accounts ...*Account) error {
 
 func (g Group) exists(account *Account) bool {
 	for _, a := range g.Accounts {
-		if account.Name == a.Name {
+		if account.Name == a.Name && account.Tag == a.Tag {
 			return true
 		}
 	}
@@ -55,7 +56,7 @@ func (g Group) Table() [][]string {
 		accounts[i] = []string{
 			g.GID,
 			item.Name,
-			item.Desc,
+			strings.Join([]string{"#", item.Tag}, ""),
 			item.CreatedOn.Format(prettyDateLayout),
 		}
 	}

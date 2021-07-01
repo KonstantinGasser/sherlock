@@ -10,7 +10,7 @@ import (
 var (
 	ErrNotSetup    = fmt.Errorf("sherlock needs to bee set-up first (use sherlock setup)")
 	ErrNoSuchGroup = fmt.Errorf("provided group cannot be found (use sherlock add --group)")
-	ErrWrongKey    = fmt.Errorf("wrong partition key")
+	ErrWrongKey    = fmt.Errorf("wrong group key")
 )
 
 // FileSystem declares the functions sherlock requires to
@@ -48,8 +48,8 @@ func (sh Sherlock) IsSetUp() error {
 // Setup checks if a main password for the vault has already been
 // set which is required for every further command. Setup will create required directories
 // if those are missing
-func (sh *Sherlock) Setup(partitionKey string) error {
-	vault, err := security.InitWithDefault(partitionKey, Group{
+func (sh *Sherlock) Setup(groupKey string) error {
+	vault, err := security.InitWithDefault(groupKey, Group{
 		GID:      "default",
 		Accounts: make([]*Account, 0),
 	})
@@ -63,14 +63,14 @@ func (sh *Sherlock) Setup(partitionKey string) error {
 	return nil
 }
 
-// SetupGroup creates the group partition in the file system
+// SetupGroup creates the group group in the file system
 // if the group does not already exists
-func (sh Sherlock) SetupGroup(name string, partitionKey string) error {
+func (sh Sherlock) SetupGroup(name string, groupKey string) error {
 	if err := sh.GroupExists(name); err != nil {
 		return err
 	}
 
-	vault, err := security.InitWithDefault(partitionKey, Group{
+	vault, err := security.InitWithDefault(groupKey, Group{
 		GID:      name,
 		Accounts: make([]*Account, 0),
 	})
@@ -84,13 +84,13 @@ func (sh Sherlock) GroupExists(name string) error {
 	return sh.fileSystem.GroupExists(name)
 }
 
-func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, partitionKey string, gid string) error {
+func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, groupKey string, gid string) error {
 	bytes, err := sh.fileSystem.ReadGroupVault(gid)
 	if err != nil {
 		return err
 	}
 	var group Group
-	if err := security.DecryptVault(bytes, partitionKey, &group); err != nil {
+	if err := security.DecryptVault(bytes, groupKey, &group); err != nil {
 		return ErrWrongKey
 	}
 	if err := group.append(account); err != nil {
@@ -100,7 +100,7 @@ func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, partitionK
 	if err != nil {
 		return err
 	}
-	encrypted, err := security.EncryptVault(serizalized, partitionKey)
+	encrypted, err := security.EncryptVault(serizalized, groupKey)
 	if err != nil {
 		return err
 	}
@@ -110,13 +110,13 @@ func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, partitionK
 	return nil
 }
 
-func (sh Sherlock) LoadGroup(gid string, partitionKey string) (*Group, error) {
+func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {
 	bytes, err := sh.fileSystem.ReadGroupVault(gid)
 	if err != nil {
 		return nil, err
 	}
 	var group Group
-	if err := security.DecryptVault(bytes, partitionKey, &group); err != nil {
+	if err := security.DecryptVault(bytes, groupKey, &group); err != nil {
 		return nil, ErrWrongKey
 	}
 	return &group, nil

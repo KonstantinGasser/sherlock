@@ -14,22 +14,22 @@ var (
 type Account struct {
 	Name      string    `json:"name"`
 	Password  string    `json:"password"`
-	Desc      string    `json:"desc"`
+	Tag       string    `json:"tag"`
 	CreatedOn time.Time `json:"created_on"`
 }
 
 // NewAccount creates a new Account and if insecure=false checks the password strength
 // returning an err if strength security.Low
-func NewAccount(name, password, desc string, insecure bool) (*Account, error) {
+func NewAccount(name, password, tag string, insecure bool) (*Account, error) {
 	a := Account{
-		Name:     name,
-		Password: password,
-		Desc:     desc,
+		Name:      name,
+		Password:  password,
+		CreatedOn: time.Now(),
+		Tag:       tag,
 	}
 	if insecure {
 		return &a, nil
 	}
-	fmt.Println(a.secure())
 	if level := a.secure(); level == security.Low {
 		return nil, ErrInsecurePassword
 	}
