@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/KonstantinGasser/sherlock/internal/security"
 )
@@ -11,9 +12,10 @@ var (
 )
 
 type Account struct {
-	Name     string `json:"name"`
-	Password string `json:"password"`
-	Desc     string `json:"desc"`
+	Name      string    `json:"name"`
+	Password  string    `json:"password"`
+	Desc      string    `json:"desc"`
+	CreatedOn time.Time `json:"created_on"`
 }
 
 // NewAccount creates a new Account and if insecure=false checks the password strength

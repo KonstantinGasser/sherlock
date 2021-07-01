@@ -2,10 +2,12 @@ package terminal
 
 import (
 	"fmt"
+	"os"
 	"syscall"
 
 	"github.com/enescakir/emoji"
 	"github.com/fatih/color"
+	"github.com/olekukonko/tablewriter"
 	"golang.org/x/crypto/ssh/terminal"
 )
 
@@ -37,4 +39,52 @@ func pretty(c color.Attribute, e emoji.Emoji, f string, a ...interface{}) {
 // cli. does not add a \n to the format string
 func prettyNoNewLine(c color.Attribute, e emoji.Emoji, f string, a ...interface{}) {
 	_, _ = color.New(c).Printf(fmt.Sprintf("%v %s", e, f), a...)
+}
+
+var bgC = []int{
+	tablewriter.BgBlueColor,
+	tablewriter.BgMagentaColor,
+	tablewriter.BgGreenColor,
+	tablewriter.BgHiYellowColor,
+}
+
+func ToTable(header []string, rows [][]string, opts ...func(*tablewriter.Table)) {
+	table := tablewriter.NewWriter(os.Stdout)
+	table.SetHeader(padding(header))
+	buildHeader(table, header)
+
+	for _, opt := range opts {
+		opt(table)
+	}
+	table.AppendBulk(rows)
+	table.Render()
+}
+
+func buildHeader(t *tablewriter.Table, h []string) {
+	colors := make([]tablewriter.Colors, len(h))
+	for i := 0; i < len(h); i++ {
+		colors[i] = tablewriter.Colors{tablewriter.Bold, bgC[i%len(h)]}
+	}
+	t.SetHeaderColor(colors...)
+}
+
+func padding(h []string) []string {
+	for i, v := range h {
+		h[i] = " " + v + " "
+	}
+	return h
+}
+
+// TableWithCellMerge apply tablewriter.SetAuthMergeCellsByColumnIndex to the
+// table instance and enables tablewriter.SetRowLine.
+// Allows to group rows by a column index
+func TableWithCellMerge(mergeByIndex int) func(*tablewriter.Table) {
+	return func(t *tablewriter.Table) {
+		var index = mergeByIndex
+		if mergeByIndex > t.NumLines() {
+			index = 0
+		}
+		t.SetAutoMergeCellsByColumnIndex([]int{index})
+		t.SetRowLine(true)
+	}
 }

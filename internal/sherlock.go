@@ -109,3 +109,15 @@ func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, partitionK
 	}
 	return nil
 }
+
+func (sh Sherlock) LoadGroup(gid string, partitionKey string) (*Group, error) {
+	bytes, err := sh.fileSystem.ReadGroupVault(gid)
+	if err != nil {
+		return nil, err
+	}
+	var group Group
+	if err := security.DecryptVault(bytes, partitionKey, &group); err != nil {
+		return nil, ErrWrongKey
+	}
+	return &group, nil
+}

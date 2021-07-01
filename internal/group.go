@@ -5,6 +5,10 @@ import (
 	"fmt"
 )
 
+const (
+	prettyDateLayout = "Monday, 02. January 2006"
+)
+
 var (
 	ErrAccountExists = fmt.Errorf("account for group already exists")
 )
@@ -43,4 +47,17 @@ func (g Group) exists(account *Account) bool {
 
 func (g Group) serizalize() ([]byte, error) {
 	return json.Marshal(g)
+}
+
+func (g Group) Table() [][]string {
+	var accounts = make([][]string, len(g.Accounts))
+	for i, item := range g.Accounts {
+		accounts[i] = []string{
+			g.GID,
+			item.Name,
+			item.Desc,
+			item.CreatedOn.Format(prettyDateLayout),
+		}
+	}
+	return accounts
 }
