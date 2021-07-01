@@ -13,20 +13,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-package main
+package cmd
 
 import (
-	"github.com/KonstantinGasser/sherlock/cmd"
 	"github.com/KonstantinGasser/sherlock/internal"
-	"github.com/KonstantinGasser/sherlock/internal/fs"
 	"github.com/KonstantinGasser/sherlock/internal/terminal"
+	"github.com/spf13/cobra"
 )
 
-func main() {
-	fileSystem := fs.New()
-	sherlock := internal.NewSherlock(fileSystem)
+func cmdSetup(sherlock *internal.Sherlock) *cobra.Command {
 
-	if err := cmd.RootCmd(sherlock).Execute(); err != nil {
-		terminal.Error("%s", err)
+	return &cobra.Command{
+		Use:   "setup",
+		Short: "setup allows to initially set-up a main password for your vault",
+		Long:  "to encrypt and decrypt your vault you will need to set-up a main password",
+		Run: func(cmd *cobra.Command, args []string) {
+			terminal.Success("setup command works")
+		},
 	}
 }

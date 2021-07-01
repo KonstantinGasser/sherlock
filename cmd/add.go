@@ -16,31 +16,72 @@ limitations under the License.
 package cmd
 
 import (
-	"fmt"
+	"context"
 
+	"github.com/KonstantinGasser/sherlock/internal"
+	"github.com/KonstantinGasser/sherlock/internal/terminal"
 	"github.com/spf13/cobra"
 )
 
-// addCmd represents the add command
-var addCmd = &cobra.Command{
-	Use:   "add",
-	Short: "add credentials to sherlock",
-	Long:  `add and configure a new account to want to access in a secure manner to sherlock`,
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("add called")
-	},
+type addOptions struct {
+	isGroup  bool
+	gid      string
+	name     string
+	desc     string
+	insecure bool
 }
 
-func init() {
-	rootCmd.AddCommand(addCmd)
+func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
+	var opts addOptions
 
-	// Here you will define your flags and configuration settings.
+	add := &cobra.Command{
+		Use:   "add",
+		Short: "add account to sherlock",
+		Long:  "add and configure a new account you want to access in a secure manner",
+		Run: func(cmd *cobra.Command, args []string) {
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// addCmd.PersistentFlags().String("foo", "", "A help for foo")
+			// creation of a group
+			if opts.isGroup {
+				if opts.name == "" {
+					terminal.Error("group name required (--name)")
+					return
+				}
+				err := sherlock.SetupGroup(opts.name)
+				if err != nil {
+					terminal.Error(err.Error())
+					return
+				}
+				terminal.Success("Group %q added to sherlock", opts.name)
+				return
+			}
 
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// addCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+			if opts.name == "" {
+				terminal.Error("account name required (--name)")
+				return
+			}
+			password, err := terminal.ReadPassword()
+			if err != nil {
+				terminal.Error(err.Error())
+				return
+			}
+			account, err := internal.NewAccount(opts.gid, opts.name, password, opts.desc, opts.insecure)
+			if err != nil {
+				terminal.Error(err.Error())
+				return
+			}
+			if err := sherlock.AddAccount(context.Background(), account); err != nil {
+				terminal.Error(err.Error())
+				return
+			}
+			terminal.Success("Account successfully added")
+		},
+	}
+
+	add.Flags().StringVarP(&opts.gid, "gid", "g", "default", "map account to existing group")
+	add.Flags().StringVarP(&opts.name, "name", "n", "", "name of the account/group")
+	add.Flags().StringVarP(&opts.desc, "desc", "d", "", "description for the account")
+	add.Flags().BoolVarP(&opts.insecure, "insecure", "i", false, "allow insecure password for account")
+	add.Flags().BoolVarP(&opts.isGroup, "group", "G", false, "add a group to organize accounts")
+
+	return add
 }
