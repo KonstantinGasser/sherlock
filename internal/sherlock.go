@@ -48,8 +48,8 @@ func (sh Sherlock) IsSetUp() error {
 // Setup checks if a main password for the vault has already been
 // set which is required for every further command. Setup will create required directories
 // if those are missing
-func (sh *Sherlock) Setup(partionKey string) error {
-	vault, err := security.InitWithDefault(partionKey, Group{
+func (sh *Sherlock) Setup(partitionKey string) error {
+	vault, err := security.InitWithDefault(partitionKey, Group{
 		GID:      "default",
 		Accounts: make([]*Account, 0),
 	})
@@ -65,12 +65,12 @@ func (sh *Sherlock) Setup(partionKey string) error {
 
 // SetupGroup creates the group partition in the file system
 // if the group does not already exists
-func (sh Sherlock) SetupGroup(name string, partitonKey string) error {
+func (sh Sherlock) SetupGroup(name string, partitionKey string) error {
 	if err := sh.GroupExists(name); err != nil {
 		return err
 	}
 
-	vault, err := security.InitWithDefault(partitonKey, Group{
+	vault, err := security.InitWithDefault(partitionKey, Group{
 		GID:      name,
 		Accounts: make([]*Account, 0),
 	})
@@ -84,13 +84,13 @@ func (sh Sherlock) GroupExists(name string) error {
 	return sh.fileSystem.GroupExists(name)
 }
 
-func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, partitonKey string, gid string) error {
+func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, partitionKey string, gid string) error {
 	bytes, err := sh.fileSystem.ReadGroupVault(gid)
 	if err != nil {
 		return err
 	}
 	var group Group
-	if err := security.DecryptVault(bytes, partitonKey, &group); err != nil {
+	if err := security.DecryptVault(bytes, partitionKey, &group); err != nil {
 		return ErrWrongKey
 	}
 	if err := group.append(account); err != nil {
@@ -100,7 +100,7 @@ func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, partitonKe
 	if err != nil {
 		return err
 	}
-	encrypted, err := security.EncryptVault(serizalized, partitonKey)
+	encrypted, err := security.EncryptVault(serizalized, partitionKey)
 	if err != nil {
 		return err
 	}
