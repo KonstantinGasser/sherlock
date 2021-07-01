@@ -32,7 +32,7 @@ add allows to add either `groups` or `accounts` to `sherlock`
 `detective` will be its own group protected with a password
 
 ### command: account
-`sherlock add --gid detective --name bakerstreet --tag nr.221`
+`sherlock add --gid detective --name bakerstreet --tag 221b`
 
 ### options:
 |Option|Description|
