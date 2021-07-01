@@ -1,7 +1,14 @@
 package security
 
 import (
+	"crypto/aes"
+	"crypto/cipher"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io"
 	"regexp"
 )
 
@@ -13,6 +20,38 @@ const (
 	// HighSecurity if password rating in rage(75, 100)
 	High
 )
+
+func hash(key string) []byte {
+	b := sha256.Sum256([]byte(key))
+	hexB := hex.EncodeToString(b[:])
+	return []byte(hexB)
+}
+
+// InitWithDefault encrypts and empty map[string]interface with a
+// provided key
+func InitWithDefault(key string) ([]byte, error) {
+	var defaultVault = make(map[string]interface{})
+	byteVault, err := json.Marshal(defaultVault)
+	if err != nil {
+		return nil, err
+	}
+	aesKey := hash(key)
+	block, err := aes.NewCipher(aesKey[:16])
+	if err != nil {
+		return nil, err
+	}
+	encypted := make([]byte, aes.BlockSize+len(byteVault))
+	iv := encypted[:aes.BlockSize]
+
+	if _, err := io.ReadFull(rand.Reader, iv); err != nil {
+		return nil, err
+	}
+
+	stream := cipher.NewCFBEncrypter(block, iv)
+	stream.XORKeyStream(encypted[aes.BlockSize:], byteVault)
+
+	return encypted, err
+}
 
 // EncryptVault encrypts the data using the key
 func EncryptVault(b []byte, key string) error {

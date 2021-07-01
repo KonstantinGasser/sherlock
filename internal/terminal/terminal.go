@@ -19,7 +19,7 @@ func Error(format string, a ...interface{}) {
 
 func ReadPassword() (string, error) {
 
-	prettyNoNewLine(color.FgGreen, emoji.Locked, "account password: ")
+	prettyNoNewLine(color.FgGreen, emoji.Locked, "password: ")
 	b, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return "", err

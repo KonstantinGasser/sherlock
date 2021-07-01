@@ -46,8 +46,12 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 					terminal.Error("group name required (--name)")
 					return
 				}
-				err := sherlock.SetupGroup(opts.name)
+				partionKey, err := terminal.ReadPassword()
 				if err != nil {
+					terminal.Error(err.Error())
+					return
+				}
+				if err := sherlock.SetupGroup(opts.name, partionKey); err != nil {
 					terminal.Error(err.Error())
 					return
 				}

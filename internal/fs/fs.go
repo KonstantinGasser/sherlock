@@ -1,7 +1,9 @@
 package fs
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -18,6 +20,7 @@ const (
 
 var (
 	ErrNoSuchGroup = fmt.Errorf("group not found in sherlock")
+	ErrNoSuchVault = fmt.Errorf("vault for group not found in sherlock")
 	ErrGroupExists = fmt.Errorf("group already exists")
 )
 
@@ -34,7 +37,7 @@ func (fs Fs) ReadGroupVault(group string) ([]byte, error) {
 
 // InitFs creates all directories required to be setup to use
 // sherlock. If the directory exists nothing happens
-func (fs Fs) InitFs() error {
+func (fs Fs) InitFs(initVault []byte) error {
 	if err := os.MkdirAll(filepath.Join(homepath(), sherlockRoot, groupsDir, defaultGroup), 0777); err != nil {
 		return err
 	}
@@ -44,10 +47,14 @@ func (fs Fs) InitFs() error {
 		return err
 	}
 	defer f.Close()
+
+	if _, err := io.Copy(f, bytes.NewReader(initVault)); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (fs Fs) CreateGroup(name string) error {
+func (fs Fs) CreateGroup(name string, initVault []byte) error {
 	if err := os.MkdirAll(filepath.Join(homepath(), sherlockRoot, groupsDir, name), 0777); err != nil {
 		return err
 	}
@@ -56,6 +63,10 @@ func (fs Fs) CreateGroup(name string) error {
 		return err
 	}
 	defer f.Close()
+
+	if _, err := io.Copy(f, bytes.NewReader(initVault)); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -68,6 +79,17 @@ func (fs Fs) GroupExists(name string) error {
 		return err
 	}
 	return ErrGroupExists
+}
+
+func (fs Fs) VaultExists(group string) error {
+	_, err := os.Stat(buildVaultPath(group))
+	if err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+	return ErrNoSuchVault
 }
 
 func (fs Fs) WriteAccount(a *internal.Account) error {
