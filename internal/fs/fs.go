@@ -53,6 +53,9 @@ func (fs Fs) InitFs(initVault []byte) error {
 	return nil
 }
 
+// CreateGroup creates a new directory for a given group with its .vault file.
+// if the group already exists it will be overwritten! To check if a group exists you should use the
+// fs.GroupExists func
 func (fs Fs) CreateGroup(name string, initVault []byte) error {
 	if err := os.MkdirAll(filepath.Join(homepath(), sherlockRoot, groupsDir, name), 0777); err != nil {
 		return err

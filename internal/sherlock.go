@@ -3,14 +3,20 @@ package internal
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/KonstantinGasser/sherlock/internal/security"
 )
 
+const (
+	querySplitPoint = "@"
+)
+
 var (
-	ErrNotSetup    = fmt.Errorf("sherlock needs to bee set-up first (use sherlock setup)")
-	ErrNoSuchGroup = fmt.Errorf("provided group cannot be found (use sherlock add --group)")
-	ErrWrongKey    = fmt.Errorf("wrong group key")
+	ErrNotSetup     = fmt.Errorf("sherlock needs to bee set-up first (use sherlock setup)")
+	ErrNoSuchGroup  = fmt.Errorf("provided group cannot be found (use sherlock add --group)")
+	ErrWrongKey     = fmt.Errorf("wrong group key")
+	ErrInvalidQuery = fmt.Errorf("invalid query. Query should be %q", "group@account")
 )
 
 // FileSystem declares the functions sherlock requires to
@@ -110,6 +116,19 @@ func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, groupKey s
 	return nil
 }
 
+func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
+	keySet, err := sh.splitQuery(query)
+	if err != nil {
+		return nil, err
+	}
+
+	group, err := sh.LoadGroup(keySet[0], groupKey)
+	if err != nil {
+		return nil, err
+	}
+	return group.find(keySet[1])
+}
+
 func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {
 	bytes, err := sh.fileSystem.ReadGroupVault(gid)
 	if err != nil {
@@ -120,4 +139,12 @@ func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {
 		return nil, ErrWrongKey
 	}
 	return &group, nil
+}
+
+func (sh Sherlock) splitQuery(query string) ([]string, error) {
+	set := strings.Split(query, querySplitPoint)
+	if len(set) != 2 {
+		return nil, ErrInvalidQuery
+	}
+	return set, nil
 }

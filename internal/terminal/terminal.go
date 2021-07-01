@@ -15,12 +15,16 @@ func Success(format string, a ...interface{}) {
 	pretty(color.FgGreen, emoji.Emoji(emoji.RaisingHands.String()), format, a...)
 }
 
+func Info(format string, a ...interface{}) {
+	pretty(color.FgHiBlue, emoji.Emoji(emoji.BackhandIndexPointingRight.String()), format, a...)
+}
+
 func Error(format string, a ...interface{}) {
 	pretty(color.FgRed, emoji.ExclamationMark, format, a...)
 }
 
 func ReadPassword(format string) (string, error) {
-	prettyNoNewLine(color.FgGreen, emoji.Locked, format)
+	prettyNoNewLine(color.FgHiBlue, emoji.Locked, format)
 	b, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return "", err

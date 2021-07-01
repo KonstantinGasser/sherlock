@@ -3,6 +3,7 @@ module github.com/KonstantinGasser/sherlock
 go 1.15
 
 require (
+	github.com/atotto/clipboard v0.1.4
 	github.com/enescakir/emoji v1.0.0
 	github.com/fatih/color v1.7.0
 	github.com/olekukonko/tablewriter v0.0.5
