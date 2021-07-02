@@ -52,3 +52,30 @@ func TestGroupAppend(t *testing.T) {
 		}
 	}
 }
+
+// This is a no-brainer test however it exists to ensure the function
+// will not be changed unexpectedly
+func TestFilterByTag(t *testing.T) {
+	tt := []struct {
+		account   Account
+		filterTag string
+		excpeted  bool
+	}{
+		{
+			account:   Account{Tag: "tag_1"},
+			filterTag: "tag_1",
+			excpeted:  true,
+		},
+		{
+			account:   Account{Tag: "tag_2"},
+			filterTag: "tag_1",
+			excpeted:  true,
+		},
+	}
+	for _, tc := range tt {
+		f := FilterByTag(tc.filterTag)
+		if ok := f(&tc.account); ok != tc.excpeted {
+			t.Fatalf("group.FilterByTag: want: %v, have: %v", tc.excpeted, ok)
+		}
+	}
+}

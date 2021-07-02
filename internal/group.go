@@ -96,16 +96,32 @@ func (g Group) valid() error {
 }
 
 // Table builds the Group in such a way that it can be consumed by the tablewriter.Table
-func (g Group) Table() [][]string {
-	var accounts = make([][]string, len(g.Accounts))
-	for i, item := range g.Accounts {
-		accounts[i] = []string{
+func (g Group) Table(filter ...func(*Account) bool) [][]string {
+	var accounts [][]string
+
+skipp:
+	for _, item := range g.Accounts {
+		for _, f := range filter {
+			if !f(item) {
+				continue skipp
+			}
+		}
+		accounts = append(accounts, []string{
 			g.GID,
 			item.Name,
 			strings.Join([]string{"#", item.Tag}, ""),
 			item.CreatedOn.Format(prettyDateLayout),
 			item.UpdatedOn.Format(prettyDateLayout),
-		}
+		})
 	}
 	return accounts
+}
+
+func FilterByTag(tag string) func(*Account) bool {
+	return func(a *Account) bool {
+		if len(tag) == 0 {
+			return true
+		}
+		return a.Tag == tag
+	}
 }
