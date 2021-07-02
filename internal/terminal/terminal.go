@@ -25,8 +25,8 @@ func Error(format string, a ...interface{}) {
 	pretty(color.FgRed, emoji.ExclamationMark, format, a...)
 }
 
-func ReadPassword(format string) (string, error) {
-	prettyNoNewLine(color.FgHiBlue, emoji.Locked, format)
+func ReadPassword(format string, a ...interface{}) (string, error) {
+	prettyNoNewLine(color.FgHiBlue, emoji.Locked, format, a...)
 	b, err := terminal.ReadPassword(int(syscall.Stdin))
 	if err != nil {
 		return "", err

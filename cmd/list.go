@@ -13,7 +13,7 @@ func cmdList(sherlock *internal.Sherlock) *cobra.Command {
 		Long:  "to encrypt and decrypt your vault you will need to set-up a main password",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			groupKey, err := terminal.ReadPassword("group password: ")
+			groupKey, err := terminal.ReadPassword("group (%s) password: ", args[0])
 			if err != nil {
 				terminal.Error(err.Error())
 				return
