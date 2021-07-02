@@ -30,12 +30,12 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 					terminal.Error("group name required (--name)")
 					return
 				}
-				partionKey, err := terminal.ReadPassword("group password: ")
+				groupKey, err := terminal.ReadPassword("group password: ")
 				if err != nil {
 					terminal.Error(err.Error())
 					return
 				}
-				if err := sherlock.SetupGroup(opts.name, partionKey); err != nil {
+				if err := sherlock.SetupGroup(opts.name, groupKey); err != nil {
 					terminal.Error(err.Error())
 					return
 				}
@@ -47,7 +47,7 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 				terminal.Error("account name required (--name)")
 				return
 			}
-			partionKey, err := terminal.ReadPassword("group password: ")
+			groupKey, err := terminal.ReadPassword("group password: ")
 			if err != nil {
 				terminal.Error(err.Error())
 				return
@@ -62,7 +62,7 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 				terminal.Error(err.Error())
 				return
 			}
-			if err := sherlock.AddAccount(context.Background(), account, partionKey, opts.gid); err != nil {
+			if err := sherlock.AddAccount(context.Background(), account, groupKey, opts.gid); err != nil {
 				terminal.Error(err.Error())
 				return
 			}

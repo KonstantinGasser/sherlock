@@ -75,11 +75,11 @@ func (sh Sherlock) SetupGroup(name string, groupKey string) error {
 	if err := sh.GroupExists(name); err != nil {
 		return err
 	}
-
-	vault, err := security.InitWithDefault(groupKey, Group{
-		GID:      name,
-		Accounts: make([]*Account, 0),
-	})
+	group, err := NewGroup(name)
+	if err != nil {
+		return err
+	}
+	vault, err := security.InitWithDefault(groupKey, group)
 	if err != nil {
 		return err
 	}

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/KonstantinGasser/required"
 )
 
 const (
@@ -11,21 +13,26 @@ const (
 )
 
 var (
-	ErrAccountExists = fmt.Errorf("account for group already exists")
-	ErrNoSuchAccount = fmt.Errorf("account not found")
+	ErrAccountExists    = fmt.Errorf("account for group already exists")
+	ErrNoSuchAccount    = fmt.Errorf("account not found")
+	ErrInvalidGroupName = fmt.Errorf("group name must be a consecutive string")
 )
 
 // Group groups Accounts
 type Group struct {
-	GID      string     `json:"name"`
+	GID      string     `json:"name" required:"yes"`
 	Accounts []*Account `json:"accounts"`
 }
 
-func NewGroup(name string) *Group {
-	return &Group{
+func NewGroup(name string) (*Group, error) {
+	g := Group{
 		GID:      name,
 		Accounts: make([]*Account, 0),
 	}
+	if err := g.valid(); err != nil {
+		return nil, err
+	}
+	return &g, nil
 }
 
 // append appends an account to a group if it does not already exists
@@ -76,6 +83,16 @@ func (g Group) exists(account *Account) bool {
 
 func (g Group) serizalize() ([]byte, error) {
 	return json.Marshal(g)
+}
+
+func (g Group) valid() error {
+	if err := required.Atomic(&g); err != nil {
+		return ErrMissingValues
+	}
+	if set := strings.Split(g.GID, " "); len(set) != 1 {
+		return ErrInvalidGroupName
+	}
+	return nil
 }
 
 // Table builds the Group in such a way that it can be consumed by the tablewriter.Table

@@ -5,9 +5,10 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
+
+	"github.com/spf13/afero"
 )
 
 const (
@@ -23,25 +24,29 @@ var (
 	ErrGroupExists = fmt.Errorf("group already exists")
 )
 
-type Fs struct{}
+type Fs struct {
+	mock afero.Fs
+}
 
-func New() *Fs {
-	return &Fs{}
+func New(mock afero.Fs) *Fs {
+	return &Fs{
+		mock: mock,
+	}
 }
 
 // ReadVault reads the stored .vault file
 func (fs Fs) ReadGroupVault(group string) ([]byte, error) {
-	return ioutil.ReadFile(buildVaultPath(group))
+	return afero.ReadFile(fs.mock, buildVaultPath(group))
 }
 
 // InitFs creates all directories required to be setup to use
 // sherlock. If the directory exists nothing happens
 func (fs Fs) InitFs(initVault []byte) error {
-	if err := os.MkdirAll(filepath.Join(homepath(), sherlockRoot, groupsDir, defaultGroup), 0777); err != nil {
+	if err := fs.mock.MkdirAll(filepath.Join(homepath(), sherlockRoot, groupsDir, defaultGroup), 0777); err != nil {
 		return err
 	}
 
-	f, err := os.OpenFile(buildVaultPath(defaultGroup), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0777)
+	f, err := fs.mock.OpenFile(buildVaultPath(defaultGroup), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0777)
 	if err != nil {
 		return err
 	}
@@ -57,10 +62,10 @@ func (fs Fs) InitFs(initVault []byte) error {
 // if the group already exists it will be overwritten! To check if a group exists you should use the
 // fs.GroupExists func
 func (fs Fs) CreateGroup(name string, initVault []byte) error {
-	if err := os.MkdirAll(filepath.Join(homepath(), sherlockRoot, groupsDir, name), 0777); err != nil {
+	if err := fs.mock.MkdirAll(filepath.Join(homepath(), sherlockRoot, groupsDir, name), 0777); err != nil {
 		return err
 	}
-	f, err := os.OpenFile(buildVaultPath(name), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0777)
+	f, err := fs.mock.OpenFile(buildVaultPath(name), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0777)
 	if err != nil {
 		return err
 	}
@@ -73,7 +78,7 @@ func (fs Fs) CreateGroup(name string, initVault []byte) error {
 }
 
 func (fs Fs) GroupExists(name string) error {
-	_, err := os.Stat(buildGroupPath(name))
+	_, err := fs.mock.Stat(buildGroupPath(name))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
@@ -84,7 +89,7 @@ func (fs Fs) GroupExists(name string) error {
 }
 
 func (fs Fs) VaultExists(group string) error {
-	_, err := os.Stat(buildVaultPath(group))
+	_, err := fs.mock.Stat(buildVaultPath(group))
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil
@@ -95,7 +100,7 @@ func (fs Fs) VaultExists(group string) error {
 }
 
 func (fs Fs) Write(ctx context.Context, gid string, data []byte) error {
-	if err := ioutil.WriteFile(buildVaultPath(gid), data, os.ModeAppend); err != nil {
+	if err := afero.WriteFile(fs.mock, buildVaultPath(gid), data, os.ModeAppend); err != nil {
 		return err
 	}
 	return nil

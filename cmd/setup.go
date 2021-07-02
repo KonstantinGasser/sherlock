@@ -18,12 +18,12 @@ func cmdSetup(sherlock *internal.Sherlock) *cobra.Command {
 			}
 			terminal.Success("sherlock has a default group for accounts not mapped to any group.\nPlease provide a group password for the default group.")
 
-			partionKey, err := terminal.ReadPassword("(default) group password: ")
+			groupKey, err := terminal.ReadPassword("(default) group password: ")
 			if err != nil {
 				terminal.Error(err.Error())
 				return
 			}
-			if err := sherlock.Setup(partionKey); err != nil {
+			if err := sherlock.Setup(groupKey); err != nil {
 				terminal.Error(err.Error())
 				return
 			}
