@@ -67,6 +67,7 @@ var bgC = []int{
 	tablewriter.BgMagentaColor,
 	tablewriter.BgGreenColor,
 	tablewriter.BgHiYellowColor,
+	tablewriter.BgHiRedColor,
 }
 
 func ToTable(header []string, rows [][]string, opts ...func(*tablewriter.Table)) {

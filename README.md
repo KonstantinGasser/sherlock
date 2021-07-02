@@ -2,6 +2,9 @@
 
 > ***simple*** and ***easy*** CLI password manager
 
+<p align="center">
+    <img src="sherlock.png">
+</p>
 
 ## Installation
 

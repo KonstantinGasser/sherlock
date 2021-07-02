@@ -24,7 +24,7 @@ func cmdList(sherlock *internal.Sherlock) *cobra.Command {
 				return
 			}
 			terminal.ToTable(
-				[]string{"Group", "Account", "#Tag", "Created On"},
+				[]string{"Group", "Account", "#Tag", "Created On", "Updated On"},
 				group.Table(),
 				terminal.TableWithCellMerge(0),
 			)

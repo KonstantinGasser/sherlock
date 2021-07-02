@@ -1,6 +1,8 @@
 package fs
 
 import (
+	"bytes"
+	"context"
 	"os"
 	"path/filepath"
 	"testing"
@@ -9,7 +11,8 @@ import (
 )
 
 var (
-	defaultInitVault = []byte("init-default-vault-content")
+	defaultInitVault  = []byte("init-default-vault-content")
+	dummyWriteContent = []byte("this-is-just-some-dummy-content-for-io")
 )
 
 // TestInitFs checks if after success of func all the directories and files
@@ -60,4 +63,31 @@ func TestCreateGroup(t *testing.T) {
 	if len(vault) != len(defaultInitVault) {
 		t.Fatalf("fs.CreateGroup: saved vault differs from input vault. want: %d, have: %d", len(defaultInitVault), len(vault))
 	}
+}
+
+func TestWrite(t *testing.T) {
+	f := Fs{
+		mock: afero.NewMemMapFs(),
+	}
+
+	testGroup := "test-group"
+	err := f.CreateGroup(testGroup, defaultInitVault)
+	if err != nil {
+		t.Fatalf("fs.CreateGroup: want: nil, have: %v", err)
+	}
+
+	err = f.Write(context.Background(), testGroup, dummyWriteContent)
+	if err != nil {
+		t.Fatalf("fs.Write: want: nil, have: %v", err)
+	}
+
+	// check it written
+	vault, err := afero.ReadFile(f.mock, buildVaultPath(testGroup))
+	if err != nil {
+		t.Fatalf("fs.Write: could not open test group vault: %v", err)
+	}
+	if ok := bytes.Compare(vault, dummyWriteContent); ok != 0 {
+		t.Fatalf("fs.Write: want: %v, have: %v", dummyWriteContent, vault)
+	}
+
 }

@@ -20,6 +20,7 @@ type Account struct {
 	Password  string    `json:"password" required:"yes"`
 	Tag       string    `json:"tag"`
 	CreatedOn time.Time `json:"created_on" required:"yes"`
+	UpdatedOn time.Time `json:"updated_on"`
 }
 
 // NewAccount creates a new Account and if insecure=false checks the password strength
@@ -29,6 +30,7 @@ func NewAccount(name, password, tag string, insecure bool) (*Account, error) {
 		Name:      name,
 		Password:  password,
 		CreatedOn: time.Now(),
+		UpdatedOn: time.Now(),
 		Tag:       tag,
 	}
 	if err := a.valid(); err != nil {

@@ -104,6 +104,7 @@ func (g Group) Table() [][]string {
 			item.Name,
 			strings.Join([]string{"#", item.Tag}, ""),
 			item.CreatedOn.Format(prettyDateLayout),
+			item.UpdatedOn.Format(prettyDateLayout),
 		}
 	}
 	return accounts
