@@ -1,5 +1,2 @@
 # ide
 .vscode
-
-# build config
-.travis.yaml
