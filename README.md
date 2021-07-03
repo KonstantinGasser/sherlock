@@ -2,9 +2,9 @@
 
 > ***simple*** and ***easy*** CLI password manager
 
-<p align="center">
+<!-- <p align="center">
     <img src="sherlock.png">
-</p>
+</p> -->
 
 ## Installation
 
@@ -30,7 +30,7 @@ required the first time you use `sherlock`. It will let you define the main pass
 add allows to add either `groups` or `accounts` to `sherlock`
 
 ### command: group
-`sherlock add --group --name detective` 
+`sherlock add --group detective` 
 
 `detective` will be its own group protected with a password
 
@@ -49,6 +49,11 @@ prints all accounts mapped to a group the the cli
 
 ### command
 `sherlock list detective`
+
+### options:
+Option|Description|
+|-|-|
+|--tag |filter accounts by tag name|
 
 ## get
 get an account password
