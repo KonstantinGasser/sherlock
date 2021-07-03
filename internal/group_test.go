@@ -69,7 +69,7 @@ func TestFilterByTag(t *testing.T) {
 		{
 			account:   Account{Tag: "tag_2"},
 			filterTag: "tag_1",
-			excpeted:  true,
+			excpeted:  false,
 		},
 	}
 	for _, tc := range tt {
