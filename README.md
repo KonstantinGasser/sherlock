@@ -6,7 +6,7 @@
     <img src="sherlock.png">
 </p>
 
-## Installation
+## Installation 
 
 ### go
 `go get github.com/KonstantinGasser/sherlock`
