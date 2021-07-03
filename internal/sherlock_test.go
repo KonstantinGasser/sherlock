@@ -3,7 +3,7 @@ package internal
 import (
 	"testing"
 
-	"github.com/KonstantinGasser/sherlock/internal/fs"
+	"github.com/KonstantinGasser/sherlock/fs"
 	"github.com/spf13/afero"
 )
 

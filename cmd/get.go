@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/KonstantinGasser/sherlock/internal"
-	"github.com/KonstantinGasser/sherlock/internal/terminal"
+	"github.com/KonstantinGasser/sherlock/terminal"
 	"github.com/atotto/clipboard"
 	"github.com/spf13/cobra"
 )

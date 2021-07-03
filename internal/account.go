@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/KonstantinGasser/required"
-	"github.com/KonstantinGasser/sherlock/internal/security"
+	"github.com/KonstantinGasser/sherlock/security"
 )
 
 var (

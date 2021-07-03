@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/KonstantinGasser/sherlock/internal/security"
+	"github.com/KonstantinGasser/sherlock/security"
 )
 
 const (
@@ -69,7 +69,7 @@ func (sh *Sherlock) Setup(groupKey string) error {
 	return nil
 }
 
-// SetupGroup creates the group group in the file system
+// SetupGroup creates the group in the file system
 // if the group does not already exists
 func (sh Sherlock) SetupGroup(name string, groupKey string) error {
 	if err := sh.GroupExists(name); err != nil {

@@ -2,9 +2,9 @@ package main
 
 import (
 	"github.com/KonstantinGasser/sherlock/cmd"
+	"github.com/KonstantinGasser/sherlock/fs"
 	"github.com/KonstantinGasser/sherlock/internal"
-	"github.com/KonstantinGasser/sherlock/internal/fs"
-	"github.com/KonstantinGasser/sherlock/internal/terminal"
+	"github.com/KonstantinGasser/sherlock/terminal"
 	"github.com/spf13/afero"
 )
 
