@@ -15,8 +15,8 @@ func cmdList(sherlock *internal.Sherlock) *cobra.Command {
 
 	list := &cobra.Command{
 		Use:   "list",
-		Short: "setup allows to initially set-up a main password for your vault",
-		Long:  "to encrypt and decrypt your vault you will need to set-up a main password",
+		Short: "list all accounts mapped to a given group",
+		Long:  "with the list command you can inspect all accounts mapped to a given group",
 		Args:  cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			var gid = "default"

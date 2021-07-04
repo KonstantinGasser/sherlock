@@ -15,8 +15,8 @@ func cmdGet(sherlock *internal.Sherlock) *cobra.Command {
 	var opts getOptions
 	get := &cobra.Command{
 		Use:   "get",
-		Short: "setup allows to initially set-up a main password for your vault",
-		Long:  "to encrypt and decrypt your vault you will need to set-up a main password",
+		Short: "get retrieves a stored password from a group",
+		Long:  "with the get command you can query an accounts password from a specific group",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			groupKey, err := terminal.ReadPassword("group (%s) password: ", args[0])
