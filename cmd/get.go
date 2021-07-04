@@ -19,7 +19,7 @@ func cmdGet(sherlock *internal.Sherlock) *cobra.Command {
 		Long:  "with the get command you can query an accounts password from a specific group",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			groupKey, err := terminal.ReadPassword("group (%s) password: ", args[0])
+			groupKey, err := terminal.ReadPassword("(%s) password: ", args[0])
 			if err != nil {
 				terminal.Error(err.Error())
 				return

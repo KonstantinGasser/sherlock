@@ -27,7 +27,7 @@ func cmdDel(sherlock *internal.Sherlock) *cobra.Command {
 				return
 			}
 
-			groupKey, err := terminal.ReadPassword("group (%s) password: ", opts.gid)
+			groupKey, err := terminal.ReadPassword("(%s) password: ", opts.gid)
 			if err != nil {
 				terminal.Error(err.Error())
 				return

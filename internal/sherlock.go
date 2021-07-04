@@ -112,10 +112,7 @@ func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, groupKey s
 	if err != nil {
 		return err
 	}
-	if err := sh.fileSystem.Write(ctx, gid, encrypted); err != nil {
-		return err
-	}
-	return nil
+	return sh.fileSystem.Write(ctx, gid, encrypted)
 }
 
 func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
@@ -154,10 +151,7 @@ func (sh Sherlock) DeleteAccount(ctx context.Context, group, account string, gro
 	if err != nil {
 		return err
 	}
-	if err := sh.fileSystem.Write(ctx, group, encrypted); err != nil {
-		return err
-	}
-	return nil
+	return sh.fileSystem.Write(ctx, group, encrypted)
 }
 
 func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {

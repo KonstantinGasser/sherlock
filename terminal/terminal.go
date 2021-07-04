@@ -42,12 +42,7 @@ func YesNo(format string) bool {
 	prettyNoNewLine(color.FgRed, emoji.FaceWithMonocle, format)
 	input, _ := r.ReadString('\n')
 
-	switch strings.TrimSuffix(input, "\n") {
-	case "y":
-		return true
-	default:
-		return false
-	}
+	return strings.TrimSuffix(input, "\n") == "y"
 }
 
 // pretty combines the colors and emojis and outputs a formatted string to the

@@ -23,7 +23,7 @@ func cmdList(sherlock *internal.Sherlock) *cobra.Command {
 			if len(args) > 0 {
 				gid = args[0]
 			}
-			groupKey, err := terminal.ReadPassword("group (%s) password: ", gid)
+			groupKey, err := terminal.ReadPassword("(%s) password: ", gid)
 			if err != nil {
 				terminal.Error(err.Error())
 				return

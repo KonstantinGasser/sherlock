@@ -18,6 +18,10 @@ const (
 	Satifsfied
 	// HighSecurity if password rating in rage(75, 100)
 	High
+
+	HighBound       = 65
+	SatifsfiedBound = 35
+	LowBound        = 0
 )
 
 func hash(key string) []byte {
@@ -119,9 +123,9 @@ func PasswordStrength(password string) int {
 		return strength
 	}
 	switch strength := eval(); {
-	case (strength >= 75):
+	case (strength >= HighBound):
 		return High
-	case (strength >= 45 && strength < 74):
+	case (strength >= SatifsfiedBound && strength < HighBound):
 		return Satifsfied
 	default:
 		return Low
