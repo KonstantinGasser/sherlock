@@ -16,7 +16,7 @@ type addOptions struct {
 	insecure bool
 }
 
-func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
+func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 	var opts addOptions
 
 	add := &cobra.Command{
@@ -58,7 +58,7 @@ func cmdAddAccount(sherlock *internal.Sherlock) *cobra.Command {
 				terminal.Error(err.Error())
 				return
 			}
-			if err := sherlock.AddAccount(context.Background(), account, groupKey, opts.gid); err != nil {
+			if err := sherlock.AddAccount(ctx, account, groupKey, opts.gid); err != nil {
 				terminal.Error(err.Error())
 				return
 			}

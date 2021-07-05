@@ -14,7 +14,7 @@ type delOptions struct {
 	force   bool
 }
 
-func cmdDel(sherlock *internal.Sherlock) *cobra.Command {
+func cmdDel(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 	var opts delOptions
 	del := &cobra.Command{
 		Use:   "del",
@@ -39,7 +39,7 @@ func cmdDel(sherlock *internal.Sherlock) *cobra.Command {
 				}
 			}
 
-			if err := sherlock.DeleteAccount(context.Background(), opts.gid, opts.account, groupKey); err != nil {
+			if err := sherlock.DeleteAccount(ctx, opts.gid, opts.account, groupKey); err != nil {
 				terminal.Error(err.Error())
 				return
 			}

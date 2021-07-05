@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/KonstantinGasser/sherlock/internal"
 	"github.com/KonstantinGasser/sherlock/terminal"
 	"github.com/atotto/clipboard"
@@ -11,7 +13,7 @@ type getOptions struct {
 	verbose bool
 }
 
-func cmdGet(sherlock *internal.Sherlock) *cobra.Command {
+func cmdGet(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 	var opts getOptions
 	get := &cobra.Command{
 		Use:   "get",

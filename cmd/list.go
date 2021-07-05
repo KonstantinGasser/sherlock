@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/KonstantinGasser/sherlock/internal"
 	"github.com/KonstantinGasser/sherlock/terminal"
 	"github.com/spf13/cobra"
@@ -10,7 +12,7 @@ type listOptions struct {
 	filterByTag string
 }
 
-func cmdList(sherlock *internal.Sherlock) *cobra.Command {
+func cmdList(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 	var opts listOptions
 
 	list := &cobra.Command{

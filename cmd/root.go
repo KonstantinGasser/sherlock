@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/KonstantinGasser/sherlock/internal"
 	"github.com/spf13/cobra"
 )
@@ -10,6 +12,9 @@ const (
 )
 
 func RootCmd(sherlock *internal.Sherlock) *cobra.Command {
+
+	ctx := context.Background()
+
 	root := &cobra.Command{
 		Use:           "sherlock",
 		Short:         "sherlock a CLI password manager for the simple use",
@@ -29,10 +34,10 @@ func RootCmd(sherlock *internal.Sherlock) *cobra.Command {
 		},
 	}
 
-	root.AddCommand(cmdSetup(sherlock))
-	root.AddCommand(cmdAddAccount(sherlock))
-	root.AddCommand(cmdDel(sherlock))
-	root.AddCommand(cmdList(sherlock))
-	root.AddCommand(cmdGet(sherlock))
+	root.AddCommand(cmdSetup(ctx, sherlock))
+	root.AddCommand(cmdAddAccount(ctx, sherlock))
+	root.AddCommand(cmdDel(ctx, sherlock))
+	root.AddCommand(cmdList(ctx, sherlock))
+	root.AddCommand(cmdGet(ctx, sherlock))
 	return root
 }

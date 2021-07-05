@@ -1,12 +1,14 @@
 package cmd
 
 import (
+	"context"
+
 	"github.com/KonstantinGasser/sherlock/internal"
 	"github.com/KonstantinGasser/sherlock/terminal"
 	"github.com/spf13/cobra"
 )
 
-func cmdSetup(sherlock *internal.Sherlock) *cobra.Command {
+func cmdSetup(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 	return &cobra.Command{
 		Use:   "setup",
 		Short: "setup allows to initially set-up a main password for your vault",
