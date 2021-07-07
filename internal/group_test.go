@@ -4,6 +4,32 @@ import (
 	"testing"
 )
 
+func TestCreateGoup(t *testing.T) {
+	tt := []struct {
+		name   string
+		expect error
+	}{
+		{
+			name:   "test-group",
+			expect: nil,
+		},
+		{
+			name:   "",
+			expect: ErrMissingValues,
+		},
+		{
+			name:   "test group",
+			expect: ErrInvalidGroupName,
+		},
+	}
+	for _, tc := range tt {
+		_, err := NewGroup(tc.name)
+		if err != tc.expect {
+			t.Fatalf("internal.NewGroup: want: %v, have: %v", tc.expect, err)
+		}
+	}
+}
+
 func TestGroupAppend(t *testing.T) {
 
 	tt := []struct {
