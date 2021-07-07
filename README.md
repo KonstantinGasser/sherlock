@@ -8,6 +8,10 @@
 
 ## Installation 
 
+## Homebrew
+`brew tap KonstantinGasser/sherlock`
+`brew install sherlock`
+
 ### go
 `go get github.com/KonstantinGasser/sherlock`
 
