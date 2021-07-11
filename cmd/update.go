@@ -31,7 +31,7 @@ func cmdUpdate(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command 
 func cmdUpdateAccPassword(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 
 	password := &cobra.Command{
-		Use:   "passwd",
+		Use:   "password",
 		Short: "change account password",
 		Long:  "allows to change/update the password of an existing account",
 		Args:  cobra.ExactArgs(1),
