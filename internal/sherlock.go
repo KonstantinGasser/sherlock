@@ -104,15 +104,7 @@ func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, groupKey s
 	if err := group.append(account); err != nil {
 		return err
 	}
-	serialized, err := group.serizalize()
-	if err != nil {
-		return err
-	}
-	encrypted, err := security.EncryptVault(serialized, groupKey)
-	if err != nil {
-		return err
-	}
-	return sh.fileSystem.Write(ctx, gid, encrypted)
+	return sh.WriteGroup(ctx, gid, groupKey, &group)
 }
 
 func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
@@ -128,8 +120,49 @@ func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
 	return group.lookup(keySet[1])
 }
 
-func (sh Sherlock) DeleteAccount(ctx context.Context, group, account string, groupKey string) error {
-	bytes, err := sh.fileSystem.ReadGroupVault(group)
+func (sh Sherlock) UpdateAccountPassword(ctx context.Context, query string, groupKey string, password string) error {
+	keySet, err := sh.splitQuery(query)
+	if err != nil {
+		return err
+	}
+
+	group, err := sh.LoadGroup(keySet[0], groupKey)
+	if err != nil {
+		return err
+	}
+	acc, err := group.lookup(keySet[1])
+	if err != nil {
+		return err
+	}
+	acc.updatePassword(password)
+
+	return sh.WriteGroup(ctx, keySet[0], groupKey, group)
+}
+
+func (sh Sherlock) UpdateAccountName(ctx context.Context, query string, groupKey string, name string) error {
+	keySet, err := sh.splitQuery(query)
+	if err != nil {
+		return err
+	}
+
+	group, err := sh.LoadGroup(keySet[0], groupKey)
+	if err != nil {
+		return err
+	}
+	if ok := group.exists(name); ok {
+		return ErrAccountExists
+	}
+	acc, err := group.lookup(keySet[1])
+	if err != nil {
+		return err
+	}
+	acc.updateName(name)
+
+	return sh.WriteGroup(ctx, keySet[0], groupKey, group)
+}
+
+func (sh Sherlock) DeleteAccount(ctx context.Context, gid, account string, groupKey string) error {
+	bytes, err := sh.fileSystem.ReadGroupVault(gid)
 	if err != nil {
 		return err
 	}
@@ -143,15 +176,7 @@ func (sh Sherlock) DeleteAccount(ctx context.Context, group, account string, gro
 		return err
 	}
 
-	serialized, err := g.serizalize()
-	if err != nil {
-		return err
-	}
-	encrypted, err := security.EncryptVault(serialized, groupKey)
-	if err != nil {
-		return err
-	}
-	return sh.fileSystem.Write(ctx, group, encrypted)
+	return sh.WriteGroup(ctx, gid, groupKey, &g)
 }
 
 func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {
@@ -164,6 +189,18 @@ func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {
 		return nil, ErrWrongKey
 	}
 	return &group, nil
+}
+
+func (sh Sherlock) WriteGroup(ctx context.Context, gid string, groupKey string, group *Group) error {
+	serialized, err := group.serizalize()
+	if err != nil {
+		return err
+	}
+	encrypted, err := security.EncryptVault(serialized, groupKey)
+	if err != nil {
+		return err
+	}
+	return sh.fileSystem.Write(ctx, gid, encrypted)
 }
 
 func (sh Sherlock) splitQuery(query string) ([]string, error) {

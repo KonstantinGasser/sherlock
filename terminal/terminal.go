@@ -35,6 +35,13 @@ func ReadPassword(format string, a ...interface{}) (string, error) {
 	return string(b), nil
 }
 
+func ReadLine(format string, a ...interface{}) (string, error) {
+	r := bufio.NewReader(os.Stdin)
+	prettyNoNewLine(color.FgHiBlue, emoji.Pencil, format, a...)
+	return r.ReadString('\n')
+
+}
+
 // YesNo prompts the user with a confirm dialog. in every case except for "y"
 // (lowercase y) the return will be false
 func YesNo(format string) bool {
