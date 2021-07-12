@@ -57,12 +57,12 @@ func (a Account) valid() error {
 }
 
 func (a *Account) updatePassword(password string) {
-	a.Password = password
+	a.Password = strings.TrimSpace(password)
 	a.UpdatedOn = time.Now()
 }
 
 func (a *Account) updateName(name string) {
-	a.Name = name
+	a.Name = strings.TrimSpace(name)
 	a.UpdatedOn = time.Now()
 }
 
