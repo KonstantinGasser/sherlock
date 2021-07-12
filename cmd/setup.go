@@ -30,6 +30,7 @@ func cmdSetup(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 				return
 			}
 			terminal.Success("sherlock successfully set-up")
+			terminal.Banner()
 		},
 	}
 }

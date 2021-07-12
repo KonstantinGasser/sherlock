@@ -13,6 +13,27 @@ import (
 	"golang.org/x/crypto/ssh/terminal"
 )
 
+const banner = `
+██╗     █████╗ ███╗   ███╗                       
+██║    ██╔══██╗████╗ ████║                       
+██║    ███████║██╔████╔██║                       
+██║    ██╔══██║██║╚██╔╝██║                       
+██║    ██║  ██║██║ ╚═╝ ██║                       
+╚═╝    ╚═╝  ╚═╝╚═╝     ╚═╝                       
+      ███████╗██╗  ██╗███████╗██████╗            
+▄ ██╗▄██╔════╝██║  ██║██╔════╝██╔══██╗▄ ██╗▄     
+ ████╗███████╗███████║█████╗  ██████╔╝ ████╗     
+▀╚██╔▀╚════██║██╔══██║██╔══╝  ██╔══██╗▀╚██╔▀     
+  ╚═╝ ███████║██║  ██║███████╗██║  ██║  ╚═╝      
+      ╚══════╝╚═╝  ╚═╝╚══════╝╚═╝  ╚═╝           
+██╗      ██████╗  ██████╗██╗  ██╗███████╗██████╗ 
+██║     ██╔═══██╗██╔════╝██║ ██╔╝██╔════╝██╔══██╗
+██║     ██║   ██║██║     █████╔╝ █████╗  ██║  ██║
+██║     ██║   ██║██║     ██╔═██╗ ██╔══╝  ██║  ██║
+███████╗╚██████╔╝╚██████╗██║  ██╗███████╗██████╔╝
+╚══════╝ ╚═════╝  ╚═════╝╚═╝  ╚═╝╚══════╝╚═════╝
+`
+
 func Success(format string, a ...interface{}) {
 	pretty(color.FgGreen, emoji.Emoji(emoji.RaisingHands.String()), format, a...)
 }
@@ -23,6 +44,10 @@ func Info(format string, a ...interface{}) {
 
 func Error(format string, a ...interface{}) {
 	pretty(color.FgRed, emoji.ExclamationMark, format, a...)
+}
+
+func Banner() {
+	_, _ = color.New(color.FgHiGreen).Printf(fmt.Sprintf("%s\n", banner))
 }
 
 func ReadPassword(format string, a ...interface{}) (string, error) {

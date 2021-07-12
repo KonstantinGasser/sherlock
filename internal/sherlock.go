@@ -107,6 +107,9 @@ func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, groupKey s
 	return sh.WriteGroup(ctx, gid, groupKey, &group)
 }
 
+// GetAccount looks up the requested account
+// to locate an account the query needs to include the group
+// like so group@account
 func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
 	keySet, err := sh.splitQuery(query)
 	if err != nil {
@@ -120,6 +123,7 @@ func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
 	return group.lookup(keySet[1])
 }
 
+// UpdateAccountPassword updates the password of an account mapped to a certain group
 func (sh Sherlock) UpdateAccountPassword(ctx context.Context, query string, groupKey string, password string) error {
 	keySet, err := sh.splitQuery(query)
 	if err != nil {
@@ -139,6 +143,7 @@ func (sh Sherlock) UpdateAccountPassword(ctx context.Context, query string, grou
 	return sh.WriteGroup(ctx, keySet[0], groupKey, group)
 }
 
+// UpdateAccountName updates the account-name of an account mapped to a certain group
 func (sh Sherlock) UpdateAccountName(ctx context.Context, query string, groupKey string, name string) error {
 	keySet, err := sh.splitQuery(query)
 	if err != nil {
@@ -161,6 +166,8 @@ func (sh Sherlock) UpdateAccountName(ctx context.Context, query string, groupKey
 	return sh.WriteGroup(ctx, keySet[0], groupKey, group)
 }
 
+// DeleteAccount deletes an account mapped to a group. If it is the last account in the group
+// the group remains and will not get deleted
 func (sh Sherlock) DeleteAccount(ctx context.Context, gid, account string, groupKey string) error {
 	bytes, err := sh.fileSystem.ReadGroupVault(gid)
 	if err != nil {
@@ -171,7 +178,6 @@ func (sh Sherlock) DeleteAccount(ctx context.Context, gid, account string, group
 	if err := security.DecryptVault(bytes, groupKey, &g); err != nil {
 		return err
 	}
-
 	if err := g.delete(account); err != nil {
 		return err
 	}
@@ -179,6 +185,7 @@ func (sh Sherlock) DeleteAccount(ctx context.Context, gid, account string, group
 	return sh.WriteGroup(ctx, gid, groupKey, &g)
 }
 
+// LoadGroup loads and decrypts the group vault
 func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {
 	bytes, err := sh.fileSystem.ReadGroupVault(gid)
 	if err != nil {
@@ -191,6 +198,7 @@ func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {
 	return &group, nil
 }
 
+// WriteGroup encrypts and write the group vault
 func (sh Sherlock) WriteGroup(ctx context.Context, gid string, groupKey string, group *Group) error {
 	serialized, err := group.serizalize()
 	if err != nil {
@@ -203,6 +211,8 @@ func (sh Sherlock) WriteGroup(ctx context.Context, gid string, groupKey string, 
 	return sh.fileSystem.Write(ctx, gid, encrypted)
 }
 
+// splitQuery verifies that a query (for get,update command) are in the correct
+// format: group@account
 func (sh Sherlock) splitQuery(query string) ([]string, error) {
 	set := strings.Split(query, querySplitPoint)
 	if len(set) != 2 {
