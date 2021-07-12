@@ -59,6 +59,24 @@ Option|Description|
 |-|-|
 |--tag |filter accounts by tag name|
 
+## update
+allows to update the accounts password or account name
+
+### command
+`sherlock update name detective@backerstreet`
+
+`sherlock update password detective@backerstreet`
+
+
+### command
+`sherlock list detective`
+
+### options:
+Option|Description|
+|-|-|
+|--tag |filter accounts by tag name|
+
+
 ## get
 get an account password
 
