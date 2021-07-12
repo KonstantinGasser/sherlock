@@ -9,6 +9,8 @@ import (
 )
 
 const (
+	// querySplitPoint refers to the command line argument coming from the user
+	// in the form of group@account and the separator used for it
 	querySplitPoint = "@"
 )
 

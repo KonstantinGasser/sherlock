@@ -40,8 +40,8 @@ func NewAccount(name, password, tag string, insecure bool) (*Account, error) {
 	if insecure {
 		return &a, nil
 	}
-	if level := a.secure(); level == security.Low {
-		return nil, ErrInsecurePassword
+	if err := a.secure(); err != nil {
+		return nil, err
 	}
 	return &a, nil
 }
@@ -67,6 +67,6 @@ func (a *Account) updateName(name string) {
 }
 
 // secure checks the Accounts on how secure it is
-func (a Account) secure() int {
+func (a Account) secure() error {
 	return security.PasswordStrength(a.Password)
 }
