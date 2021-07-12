@@ -56,6 +56,16 @@ func (a Account) valid() error {
 	return nil
 }
 
+func (a *Account) updatePassword(password string) {
+	a.Password = password
+	a.UpdatedOn = time.Now()
+}
+
+func (a *Account) updateName(name string) {
+	a.Name = name
+	a.UpdatedOn = time.Now()
+}
+
 // secure checks the Accounts on how secure it is
 func (a Account) secure() int {
 	return security.PasswordStrength(a.Password)

@@ -37,7 +37,7 @@ func NewGroup(name string) (*Group, error) {
 
 // append appends an account to a group if it does not already exists
 func (g *Group) append(account *Account) error {
-	if ok := g.exists(account); ok {
+	if ok := g.exists(account.Name); ok {
 		return ErrAccountExists
 	}
 	g.Accounts = append(g.Accounts, account)
@@ -71,10 +71,10 @@ func (g *Group) delete(account string) error {
 }
 
 // exists checks an account is already present in the group
-// the Account.Name and Account.Tag field build the pk for an Account
-func (g Group) exists(account *Account) bool {
+// using the account.Name as a pk
+func (g Group) exists(name string) bool {
 	for _, a := range g.Accounts {
-		if account.Name == a.Name && account.Tag == a.Tag {
+		if name == a.Name {
 			return true
 		}
 	}
