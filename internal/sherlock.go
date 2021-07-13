@@ -73,13 +73,19 @@ func (sh *Sherlock) Setup(groupKey string) error {
 
 // SetupGroup creates the group in the file system
 // if the group does not already exists
-func (sh Sherlock) SetupGroup(name string, groupKey string) error {
+func (sh Sherlock) SetupGroup(name string, groupKey string, insecure bool) error {
 	if err := sh.GroupExists(name); err != nil {
 		return err
 	}
 	group, err := NewGroup(name)
 	if err != nil {
 		return err
+	}
+	if !insecure {
+		// check password strength for group key
+		if err := group.secure(groupKey); err != nil {
+			return err
+		}
 	}
 	vault, err := security.InitWithDefault(groupKey, group)
 	if err != nil {
