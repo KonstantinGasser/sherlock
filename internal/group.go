@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/KonstantinGasser/required"
+	"github.com/KonstantinGasser/sherlock/security"
 )
 
 const (
@@ -93,6 +94,11 @@ func (g Group) valid() error {
 		return ErrInvalidGroupName
 	}
 	return nil
+}
+
+// secure evaluates the password strength of the group password
+func (g Group) secure(groupKey string) error {
+	return security.PasswordStrength(groupKey)
 }
 
 // Table builds the Group in such a way that it can be consumed by the tablewriter.Table

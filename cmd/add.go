@@ -44,7 +44,7 @@ func cmdAddGroup(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comman
 				terminal.Error(err.Error())
 				return
 			}
-			if err := sherlock.SetupGroup(opts.gid, groupKey); err != nil {
+			if err := sherlock.SetupGroup(opts.gid, groupKey, opts.insecure); err != nil {
 				terminal.Error(err.Error())
 				return
 			}
