@@ -50,6 +50,9 @@ func Banner() {
 	_, _ = color.New(color.FgHiGreen).Printf(fmt.Sprintf("%s\n", banner))
 }
 
+func Version(v string) {
+	pretty(color.FgHiGreen, emoji.Sparkles, fmt.Sprintf("sherlock %s", v))
+}
 func ReadPassword(format string, a ...interface{}) (string, error) {
 	prettyNoNewLine(color.FgHiBlue, emoji.Key, format, a...)
 	b, err := terminal.ReadPassword(int(syscall.Stdin))
