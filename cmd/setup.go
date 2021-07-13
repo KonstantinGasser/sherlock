@@ -29,7 +29,6 @@ func cmdSetup(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 				terminal.Error(err.Error())
 				return
 			}
-			terminal.Success("sherlock successfully set-up")
 			terminal.Banner()
 		},
 	}
