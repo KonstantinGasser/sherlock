@@ -66,7 +66,10 @@ allows to update the accounts password or account name
 `sherlock update name detective@backerstreet`
 
 `sherlock update password detective@backerstreet`
-
+### options:
+|Option|Description|
+|-|-|
+|--insecure| allows insecure passwords|
 
 ### command
 `sherlock list detective`
