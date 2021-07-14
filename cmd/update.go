@@ -8,11 +8,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type updateOptions struct {
-	password bool
-	name     string
-}
-
 func cmdUpdate(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 	update := &cobra.Command{
 		Use:   "update",
@@ -28,7 +23,12 @@ func cmdUpdate(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command 
 	return update
 }
 
+type passwordOptions struct {
+	insecure bool
+}
+
 func cmdUpdateAccPassword(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
+	var opts passwordOptions
 	password := &cobra.Command{
 		Use:   "password",
 		Short: "change account password",
@@ -45,13 +45,14 @@ func cmdUpdateAccPassword(ctx context.Context, sherlock *internal.Sherlock) *cob
 				terminal.Error(err.Error())
 				return
 			}
-			if err := sherlock.UpdateAccountPassword(ctx, args[0], groupKey, password); err != nil {
+			if err := sherlock.UpdateState(ctx, args[0], groupKey, internal.OptAccPassword(password, opts.insecure)); err != nil {
 				terminal.Error(err.Error())
 				return
 			}
 			terminal.Info("account password updated")
 		},
 	}
+	password.Flags().BoolVarP(&opts.insecure, "insecure", "i", false, "allow insecure password for account")
 	return password
 }
 
@@ -72,7 +73,7 @@ func cmdUpdateAccName(ctx context.Context, sherlock *internal.Sherlock) *cobra.C
 				terminal.Error(err.Error())
 				return
 			}
-			if err := sherlock.UpdateAccountName(ctx, args[0], groupKey, name); err != nil {
+			if err := sherlock.UpdateState(ctx, args[0], groupKey, internal.OptAccName(name)); err != nil {
 				terminal.Error(err.Error())
 				return
 			}

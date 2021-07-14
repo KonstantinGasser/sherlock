@@ -56,9 +56,17 @@ func (a Account) valid() error {
 	return nil
 }
 
-func (a *Account) updatePassword(password string) {
+func (a *Account) updatePassword(password string, insecure bool) error {
 	a.Password = strings.TrimSpace(password)
+	if insecure {
+		a.UpdatedOn = time.Now()
+		return nil
+	}
+	if err := a.secure(); err != nil {
+		return err
+	}
 	a.UpdatedOn = time.Now()
+	return nil
 }
 
 func (a *Account) updateName(name string) {

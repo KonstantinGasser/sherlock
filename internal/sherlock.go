@@ -21,6 +21,37 @@ var (
 	ErrInvalidQuery = fmt.Errorf("invalid query. Query should be %q", "group@account")
 )
 
+type UpdateOption func(g *Group, gid, acc string) error
+
+// OptAccPassword returns a UpdateOption to change an account password
+func OptAccPassword(password string, insecure bool) func(g *Group, gid, acc string) error {
+	return func(g *Group, gid, acc string) error {
+		account, err := g.lookup(acc)
+		if err != nil {
+			return err
+		}
+		if err := account.updatePassword(password, insecure); err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
+// OptAccName returns a UpdateOption to change an account name
+func OptAccName(name string) func(g *Group, gid, acc string) error {
+	return func(g *Group, gid, acc string) error {
+		if ok := g.exists(name); ok {
+			return ErrAccountExists
+		}
+		account, err := g.lookup(acc)
+		if err != nil {
+			return err
+		}
+		account.updateName(name)
+		return nil
+	}
+}
+
 // FileSystem declares the functions sherlock requires to
 // interact with the underlying file system
 type FileSystem interface {
@@ -119,7 +150,7 @@ func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, groupKey s
 // to locate an account the query needs to include the group
 // like so group@account
 func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
-	keySet, err := sh.splitQuery(query)
+	keySet, err := splitQuery(query)
 	if err != nil {
 		return nil, err
 	}
@@ -131,9 +162,8 @@ func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
 	return group.lookup(keySet[1])
 }
 
-// UpdateAccountPassword updates the password of an account mapped to a certain group
-func (sh Sherlock) UpdateAccountPassword(ctx context.Context, query string, groupKey string, password string) error {
-	keySet, err := sh.splitQuery(query)
+func (sh Sherlock) UpdateState(ctx context.Context, query, groupKey string, opt UpdateOption) error {
+	keySet, err := splitQuery(query)
 	if err != nil {
 		return err
 	}
@@ -142,35 +172,9 @@ func (sh Sherlock) UpdateAccountPassword(ctx context.Context, query string, grou
 	if err != nil {
 		return err
 	}
-	acc, err := group.lookup(keySet[1])
-	if err != nil {
+	if err := opt(group, keySet[0], keySet[1]); err != nil {
 		return err
 	}
-	acc.updatePassword(password)
-
-	return sh.WriteGroup(ctx, keySet[0], groupKey, group)
-}
-
-// UpdateAccountName updates the account-name of an account mapped to a certain group
-func (sh Sherlock) UpdateAccountName(ctx context.Context, query string, groupKey string, name string) error {
-	keySet, err := sh.splitQuery(query)
-	if err != nil {
-		return err
-	}
-
-	group, err := sh.LoadGroup(keySet[0], groupKey)
-	if err != nil {
-		return err
-	}
-	if ok := group.exists(name); ok {
-		return ErrAccountExists
-	}
-	acc, err := group.lookup(keySet[1])
-	if err != nil {
-		return err
-	}
-	acc.updateName(name)
-
 	return sh.WriteGroup(ctx, keySet[0], groupKey, group)
 }
 
@@ -221,7 +225,7 @@ func (sh Sherlock) WriteGroup(ctx context.Context, gid string, groupKey string, 
 
 // splitQuery verifies that a query (for get,update command) are in the correct
 // format: group@account
-func (sh Sherlock) splitQuery(query string) ([]string, error) {
+func splitQuery(query string) ([]string, error) {
 	set := strings.Split(query, querySplitPoint)
 	if len(set) != 2 {
 		return nil, ErrInvalidQuery
