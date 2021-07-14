@@ -83,7 +83,7 @@ func TestOptAccPassword(t *testing.T) {
 	}
 
 	for _, tc := range tt {
-		err := OptAccPassword(tc.newPass, tc.insecure)(&tc.g, tc.g.GID, tc.accName)
+		err := OptAccPassword(tc.newPass, tc.insecure)(&tc.g, tc.accName)
 		if (err != nil && tc.ok) || (err == nil && !tc.ok) {
 			t.Fatalf("internal.OptAccPassword: want:updated==%v, have:err==%v", tc.ok, err)
 		}
@@ -129,7 +129,7 @@ func TestOptAccName(t *testing.T) {
 	}
 
 	for _, tc := range tt {
-		err := OptAccName(tc.newName)(&tc.g, tc.g.GID, tc.accName)
+		err := OptAccName(tc.newName)(&tc.g, tc.accName)
 		if err != tc.err {
 			t.Fatalf("internal.OptAccName: want: %s, have: %s", tc.err, err)
 		}

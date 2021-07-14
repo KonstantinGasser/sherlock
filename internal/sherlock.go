@@ -21,11 +21,11 @@ var (
 	ErrInvalidQuery = fmt.Errorf("invalid query. Query should be %q", "group@account")
 )
 
-type StateOption func(g *Group, gid, acc string) error
+type StateOption func(g *Group, acc string) error
 
 // OptAccPassword returns a StateOption to change an account password
 func OptAccPassword(password string, insecure bool) StateOption {
-	return func(g *Group, gid, acc string) error {
+	return func(g *Group, acc string) error {
 		account, err := g.lookup(acc)
 		if err != nil {
 			return err
@@ -39,7 +39,7 @@ func OptAccPassword(password string, insecure bool) StateOption {
 
 // OptAccName returns a StateOption to change an account name
 func OptAccName(name string) StateOption {
-	return func(g *Group, gid, acc string) error {
+	return func(g *Group, acc string) error {
 		if ok := g.exists(name); ok {
 			return ErrAccountExists
 		}
@@ -150,33 +150,33 @@ func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, groupKey s
 // to locate an account the query needs to include the group
 // like so group@account
 func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
-	keySet, err := splitQuery(query)
+	gid, name, err := splitQuery(query)
 	if err != nil {
 		return nil, err
 	}
 
-	group, err := sh.LoadGroup(keySet[0], groupKey)
+	group, err := sh.LoadGroup(gid, groupKey)
 	if err != nil {
 		return nil, err
 	}
-	return group.lookup(keySet[1])
+	return group.lookup(name)
 }
 
 // UpdateState executes the passed in StateOption to perform state changes on a group
 func (sh Sherlock) UpdateState(ctx context.Context, query, groupKey string, opt StateOption) error {
-	keySet, err := splitQuery(query)
+	gid, name, err := splitQuery(query)
 	if err != nil {
 		return err
 	}
 
-	group, err := sh.LoadGroup(keySet[0], groupKey)
+	group, err := sh.LoadGroup(gid, groupKey)
 	if err != nil {
 		return err
 	}
-	if err := opt(group, keySet[0], keySet[1]); err != nil {
+	if err := opt(group, name); err != nil {
 		return err
 	}
-	return sh.WriteGroup(ctx, keySet[0], groupKey, group)
+	return sh.WriteGroup(ctx, gid, groupKey, group)
 }
 
 // DeleteAccount deletes an account mapped to a group. If it is the last account in the group
@@ -226,10 +226,10 @@ func (sh Sherlock) WriteGroup(ctx context.Context, gid string, groupKey string, 
 
 // splitQuery verifies that a query (for get,update command) are in the correct
 // format: group@account
-func splitQuery(query string) ([]string, error) {
+func splitQuery(query string) (string, string, error) {
 	set := strings.Split(query, querySplitPoint)
 	if len(set) != 2 {
-		return nil, ErrInvalidQuery
+		return "", "", ErrInvalidQuery
 	}
-	return set, nil
+	return set[0], set[1], nil
 }
