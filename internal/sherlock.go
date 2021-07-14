@@ -21,10 +21,10 @@ var (
 	ErrInvalidQuery = fmt.Errorf("invalid query. Query should be %q", "group@account")
 )
 
-type UpdateOption func(g *Group, gid, acc string) error
+type StateOption func(g *Group, gid, acc string) error
 
-// OptAccPassword returns a UpdateOption to change an account password
-func OptAccPassword(password string, insecure bool) func(g *Group, gid, acc string) error {
+// OptAccPassword returns a StateOption to change an account password
+func OptAccPassword(password string, insecure bool) StateOption {
 	return func(g *Group, gid, acc string) error {
 		account, err := g.lookup(acc)
 		if err != nil {
@@ -37,8 +37,8 @@ func OptAccPassword(password string, insecure bool) func(g *Group, gid, acc stri
 	}
 }
 
-// OptAccName returns a UpdateOption to change an account name
-func OptAccName(name string) func(g *Group, gid, acc string) error {
+// OptAccName returns a StateOption to change an account name
+func OptAccName(name string) StateOption {
 	return func(g *Group, gid, acc string) error {
 		if ok := g.exists(name); ok {
 			return ErrAccountExists
@@ -162,7 +162,8 @@ func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
 	return group.lookup(keySet[1])
 }
 
-func (sh Sherlock) UpdateState(ctx context.Context, query, groupKey string, opt UpdateOption) error {
+// UpdateState executes the passed in StateOption to perform state changes on a group
+func (sh Sherlock) UpdateState(ctx context.Context, query, groupKey string, opt StateOption) error {
 	keySet, err := splitQuery(query)
 	if err != nil {
 		return err

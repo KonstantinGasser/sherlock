@@ -71,6 +71,8 @@ allows to update the accounts password or account name
 |-|-|
 |--insecure| allows insecure passwords|
 
+## list
+list all accounts from a `sherlock group`. If no group provided will use `default` group
 ### command
 `sherlock list detective`
 
