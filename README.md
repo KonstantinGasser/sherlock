@@ -34,12 +34,12 @@ required the first time you use `sherlock`. It will let you define the main pass
 add allows to add either `groups` or `accounts` to `sherlock`
 
 ### command: group
-`sherlock add --group detective` 
+`sherlock add group detective` 
 
 `detective` will be its own group protected with a password
 
 ### command: account
-`sherlock add --gid detective --name bakerstreet --tag 221b`
+`sherlock add account bakerstreet --gid detective --tag 221b`
 
 ### options:
 |Option|Description|
@@ -47,6 +47,19 @@ add allows to add either `groups` or `accounts` to `sherlock`
 |--gid `group`|will map account to group|
 |--tag | appends the account with a tag info|
 |--insecure| allows insecure passwords|
+
+## del
+del allows to delete an `account` from sherlock
+
+### command: account
+`sherlock del accoount detective@bakerstreet`
+
+### options:
+|Option|Description|
+|-|-|
+|--force |bypasses the confirmation prompt|
+
+
 
 ## list
 prints all accounts mapped to a group the the cli 
