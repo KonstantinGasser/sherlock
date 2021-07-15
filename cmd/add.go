@@ -24,7 +24,6 @@ func cmdAdd(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 }
 
 type addGroupOptions struct {
-	gid      string
 	insecure bool
 }
 
@@ -34,31 +33,30 @@ func cmdAddGroup(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comman
 		Use:   "group",
 		Short: "add a group to sherlock",
 		Long:  "add a new group for accounts to sherlock",
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if opts.gid == "" {
-				terminal.Error("group name not set (use --name)")
+			if len(args) <= 0 {
+				terminal.Error("group name not set (sherlock add group [group-name])")
 				return
 			}
-			groupKey, err := terminal.ReadPassword("(%s) password: ", opts.gid)
+			groupKey, err := terminal.ReadPassword("(%s) password: ", args[0])
 			if err != nil {
 				terminal.Error(err.Error())
 				return
 			}
-			if err := sherlock.SetupGroup(opts.gid, groupKey, opts.insecure); err != nil {
+			if err := sherlock.SetupGroup(args[0], groupKey, opts.insecure); err != nil {
 				terminal.Error(err.Error())
 				return
 			}
-			terminal.Success("group %q added to sherlock", opts.gid)
+			terminal.Success("group %q added to sherlock", args[0])
 		},
 	}
-	addGroup.Flags().StringVarP(&opts.gid, "gid", "G", "", "name for the sherlock group")
 	addGroup.Flags().BoolVarP(&opts.insecure, "insecure", "i", false, "allow insecure group password")
 
 	return addGroup
 }
 
 type addAccountOptions struct {
-	name     string
 	gid      string
 	tag      string
 	insecure bool
@@ -71,8 +69,8 @@ func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comm
 		Short: "add an account to a sherlock group",
 		Long:  "add a new account to a sherlock group",
 		Run: func(cmd *cobra.Command, args []string) {
-			if opts.name == "" {
-				terminal.Error("account name required (use --name)")
+			if len(args) <= 0 {
+				terminal.Error("account name not set (sherlock add account [account-name])")
 				return
 			}
 			groupKey, err := terminal.ReadPassword("(%s) password: ", opts.gid)
@@ -80,12 +78,12 @@ func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comm
 				terminal.Error(err.Error())
 				return
 			}
-			password, err := terminal.ReadPassword("(%s) password: ", opts.name)
+			password, err := terminal.ReadPassword("(%s) password: ", args[0])
 			if err != nil {
 				terminal.Error(err.Error())
 				return
 			}
-			account, err := internal.NewAccount(opts.name, password, opts.tag, opts.insecure)
+			account, err := internal.NewAccount(args[0], password, opts.tag, opts.insecure)
 			if err != nil {
 				terminal.Error(err.Error())
 				return
@@ -98,7 +96,6 @@ func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comm
 		},
 	}
 
-	addGroup.Flags().StringVarP(&opts.name, "name", "n", "", "name for the account")
 	addGroup.Flags().StringVarP(&opts.gid, "gid", "G", "default", "group name where to add the account")
 	addGroup.Flags().StringVarP(&opts.tag, "tag", "t", "", "optional tag for this account")
 	addGroup.Flags().BoolVarP(&opts.insecure, "insecure", "i", false, "allow insecure group password")
