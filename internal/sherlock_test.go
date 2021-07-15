@@ -138,3 +138,42 @@ func TestOptAccName(t *testing.T) {
 		}
 	}
 }
+
+func TestOptAccDelete(t *testing.T) {
+	tt := []struct {
+		g           Group
+		toBeDeleted string
+		err         error
+	}{
+		{
+			g: Group{
+				GID: "test2",
+				Accounts: []*Account{
+					{
+						Name: "test1",
+					},
+				},
+			},
+			toBeDeleted: "test1",
+			err:         nil,
+		},
+	}
+
+	for _, tc := range tt {
+		err := OptAccDelete()(&tc.g, tc.toBeDeleted)
+		if err != tc.err {
+			t.Fatalf("internal.OptAccDelete: want: %v, have: %v", tc.err, err)
+		}
+		if tc.err != nil {
+			if ok := tc.g.exists(tc.toBeDeleted); !ok {
+				t.Fatalf("internal.OptAccDelete: account deleted but had an error: want:delete==%v, have:delete==%v", tc.err == nil, ok)
+			}
+		}
+		if tc.err == nil {
+			if ok := tc.g.exists(tc.toBeDeleted); ok {
+				t.Fatalf("internal.OptAccDelete: account not deleted: want:delete==%v, have:delete==%v", tc.err == nil, ok)
+			}
+		}
+
+	}
+}
