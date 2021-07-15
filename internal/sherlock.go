@@ -52,6 +52,13 @@ func OptAccName(name string) StateOption {
 	}
 }
 
+// OptAccDelete returns a StateOption deleting an account if it exists
+func OptAccDelete() StateOption {
+	return func(g *Group, acc string) error {
+		return g.delete(acc)
+	}
+}
+
 // FileSystem declares the functions sherlock requires to
 // interact with the underlying file system
 type FileSystem interface {
@@ -177,25 +184,6 @@ func (sh Sherlock) UpdateState(ctx context.Context, query, groupKey string, opt 
 		return err
 	}
 	return sh.WriteGroup(ctx, gid, groupKey, group)
-}
-
-// DeleteAccount deletes an account mapped to a group. If it is the last account in the group
-// the group remains and will not get deleted
-func (sh Sherlock) DeleteAccount(ctx context.Context, gid, account string, groupKey string) error {
-	bytes, err := sh.fileSystem.ReadGroupVault(gid)
-	if err != nil {
-		return err
-	}
-
-	var g Group
-	if err := security.DecryptVault(bytes, groupKey, &g); err != nil {
-		return err
-	}
-	if err := g.delete(account); err != nil {
-		return err
-	}
-
-	return sh.WriteGroup(ctx, gid, groupKey, &g)
 }
 
 // LoadGroup loads and decrypts the group vault
