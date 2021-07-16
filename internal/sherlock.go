@@ -30,7 +30,7 @@ func OptAccPassword(password string, insecure bool) StateOption {
 		if err != nil {
 			return err
 		}
-		if err := account.updatePassword(password, insecure); err != nil {
+		if err := account.update(updateFieldPassword(password, insecure)); err != nil {
 			return err
 		}
 		return nil
@@ -47,7 +47,22 @@ func OptAccName(name string) StateOption {
 		if err != nil {
 			return err
 		}
-		account.updateName(name)
+		if err := account.update(updateFieldName(name)); err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
+func OptsAccTag(tag string) StateOption {
+	return func(g *Group, acc string) error {
+		account, err := g.lookup(acc)
+		if err != nil {
+			return err
+		}
+		if err := account.update(updateFieldTag(tag)); err != nil {
+			return err
+		}
 		return nil
 	}
 }

@@ -56,22 +56,42 @@ func (a Account) valid() error {
 	return nil
 }
 
-func (a *Account) updatePassword(password string, insecure bool) error {
-	a.Password = strings.TrimSpace(password)
-	if insecure {
-		a.UpdatedOn = time.Now()
+type FieldUpdate func(*Account) error
+
+func updateFieldName(name string) FieldUpdate {
+	return func(a *Account) error {
+		a.Name = strings.TrimSpace(name)
 		return nil
 	}
-	if err := a.secure(); err != nil {
+}
+
+func updateFieldPassword(password string, insecure bool) FieldUpdate {
+	return func(a *Account) error {
+		a.Password = strings.TrimSpace(password)
+		if insecure {
+			a.UpdatedOn = time.Now()
+			return nil
+		}
+		if err := a.secure(); err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
+func updateFieldTag(tag string) FieldUpdate {
+	return func(a *Account) error {
+		a.Tag = strings.TrimSpace(tag)
+		return nil
+	}
+}
+
+func (a *Account) update(opt FieldUpdate) error {
+	if err := opt(a); err != nil {
 		return err
 	}
 	a.UpdatedOn = time.Now()
 	return nil
-}
-
-func (a *Account) updateName(name string) {
-	a.Name = strings.TrimSpace(name)
-	a.UpdatedOn = time.Now()
 }
 
 // secure checks the Accounts on how secure it is
