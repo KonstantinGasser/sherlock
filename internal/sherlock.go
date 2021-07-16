@@ -16,12 +16,18 @@ const (
 
 var (
 	ErrNotSetup     = fmt.Errorf("sherlock needs to bee set-up first (use sherlock setup)")
-	ErrNoSuchGroup  = fmt.Errorf("provided group cannot be found (use sherlock add --group)")
+	ErrNoSuchGroup  = fmt.Errorf("provided group cannot be found (use sherlock add group)")
 	ErrWrongKey     = fmt.Errorf("wrong group key")
 	ErrInvalidQuery = fmt.Errorf("invalid query. Query should be %q", "group@account")
 )
 
 type StateOption func(g *Group, acc string) error
+
+func OptAddAccount(account *Account) StateOption {
+	return func(g *Group, acc string) error {
+		return g.append(account)
+	}
+}
 
 // OptAccPassword returns a StateOption to change an account password
 func OptAccPassword(password string, insecure bool) StateOption {
@@ -149,23 +155,6 @@ func (sh Sherlock) SetupGroup(name string, groupKey string, insecure bool) error
 
 func (sh Sherlock) GroupExists(name string) error {
 	return sh.fileSystem.GroupExists(name)
-}
-
-// AddAccount looks up the group-vault appending its accounts slice with the new account if the account does not
-// yet exists
-func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, groupKey string, gid string) error {
-	bytes, err := sh.fileSystem.ReadGroupVault(gid)
-	if err != nil {
-		return err
-	}
-	var group Group
-	if err := security.DecryptVault(bytes, groupKey, &group); err != nil {
-		return ErrWrongKey
-	}
-	if err := group.append(account); err != nil {
-		return err
-	}
-	return sh.WriteGroup(ctx, gid, groupKey, &group)
 }
 
 // GetAccount looks up the requested account

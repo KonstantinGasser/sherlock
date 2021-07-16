@@ -88,7 +88,7 @@ func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comm
 				terminal.Error(err.Error())
 				return
 			}
-			if err := sherlock.AddAccount(ctx, account, groupKey, opts.gid); err != nil {
+			if err := sherlock.UpdateState(ctx, groupKey, opts.gid, internal.OptAddAccount(account)); err != nil {
 				terminal.Error(err.Error())
 				return
 			}
