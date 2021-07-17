@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 
+	sherlockErrors "github.com/KonstantinGasser/sherlock/errors"
 	"github.com/KonstantinGasser/sherlock/internal"
 	"github.com/KonstantinGasser/sherlock/terminal"
 	"github.com/spf13/cobra"
@@ -25,6 +26,16 @@ func cmdList(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 			if len(args) > 0 {
 				gid = args[0]
 			}
+			// load group to check whether the group is there
+			err := sherlock.GroupExists(gid)
+			if err != nil {
+				shErr, ok := err.(*sherlockErrors.SherlockErr)
+				if ok && shErr.SherlockErrTemplate == sherlockErrors.ErrGroupNotFound {
+					err = shErr
+				}
+				terminal.Error(err.Error())
+				return
+			}
 			groupKey, err := terminal.ReadPassword("(%s) password: ", gid)
 			if err != nil {
 				terminal.Error(err.Error())
@@ -32,6 +43,10 @@ func cmdList(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 			}
 			group, err := sherlock.LoadGroup(gid, groupKey)
 			if err != nil {
+				shErr, ok := err.(*sherlockErrors.SherlockErr)
+				if ok && shErr.SherlockErrTemplate == sherlockErrors.ErrGroupNotFound {
+					err = shErr
+				}
 				terminal.Error(err.Error())
 				return
 			}

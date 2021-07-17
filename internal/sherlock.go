@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strings"
 
+	sherlockErrors "github.com/KonstantinGasser/sherlock/errors"
+	"github.com/KonstantinGasser/sherlock/fs"
 	"github.com/KonstantinGasser/sherlock/security"
 )
 
@@ -13,6 +15,7 @@ const (
 )
 
 var (
+	// TODO move below errors to sherlock-errors from 'sherlock/errors'
 	ErrNotSetup     = fmt.Errorf("sherlock needs to bee set-up first (use sherlock setup)")
 	ErrNoSuchGroup  = fmt.Errorf("provided group cannot be found (use sherlock add --group)")
 	ErrWrongKey     = fmt.Errorf("wrong group key")
@@ -42,8 +45,14 @@ func NewSherlock(fs FileSystem) *Sherlock {
 }
 
 func (sh Sherlock) IsSetUp() error {
-	if err := sh.fileSystem.GroupExists("default"); err == nil { // default group does not exists
-		return ErrNotSetup
+	err := sh.fileSystem.GroupExists("default")
+	if err != nil { // default group does not exists
+		if err != fs.ErrGroupExists {
+			shErr, ok := err.(*sherlockErrors.SherlockErr)
+			if !ok || shErr.SherlockErrTemplate == sherlockErrors.ErrGroupNotFound {
+				return ErrNotSetup
+			}
+		}
 	}
 	if err := sh.fileSystem.VaultExists("default"); err == nil {
 		return ErrNotSetup
@@ -72,8 +81,12 @@ func (sh *Sherlock) Setup(groupKey string) error {
 // SetupGroup creates the group in the file system
 // if the group does not already exists
 func (sh Sherlock) SetupGroup(name string, groupKey string) error {
-	if err := sh.GroupExists(name); err != nil {
-		return err
+	err := sh.GroupExists(name)
+	if err != nil {
+		shErr, ok := err.(*sherlockErrors.SherlockErr)
+		if !ok || shErr.SherlockErrTemplate != sherlockErrors.ErrGroupNotFound {
+			return err
+		}
 	}
 	group, err := NewGroup(name)
 	if err != nil {
@@ -87,7 +100,11 @@ func (sh Sherlock) SetupGroup(name string, groupKey string) error {
 }
 
 func (sh Sherlock) GroupExists(name string) error {
-	return sh.fileSystem.GroupExists(name)
+	err := sh.fileSystem.GroupExists(name)
+	if err == nil {
+		return sherlockErrors.New(sherlockErrors.ErrGroupNotFound, err)
+	}
+	return err
 }
 
 // AddAccount looks up the group-vault appending its accounts slice with the new account if the account does not

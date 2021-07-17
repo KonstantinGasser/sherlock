@@ -19,6 +19,7 @@ const (
 )
 
 var (
+	// TODO move below errors to sherlock-errors from 'sherlock/errors'
 	ErrNoSuchGroup = fmt.Errorf("group not found in sherlock")
 	ErrNoSuchVault = fmt.Errorf("vault for group not found in sherlock")
 	ErrGroupExists = fmt.Errorf("group already exists")
