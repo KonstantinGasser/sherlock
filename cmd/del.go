@@ -8,26 +8,38 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type delOptions struct {
-	gid     string
-	account string
-	force   bool
-}
-
 func cmdDel(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
-	var opts delOptions
 	del := &cobra.Command{
 		Use:   "del",
+		Short: "delete a group or account from sherlock",
+		Long:  "delete a group or account from sherlock",
+		Run: func(cmd *cobra.Command, args []string) {
+			_ = cmd.Help()
+		},
+	}
+	del.AddCommand(cmdDelAccount(ctx, sherlock))
+
+	return del
+}
+
+type delAccOptions struct {
+	force bool
+}
+
+func cmdDelAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
+	var opts delAccOptions
+	del := &cobra.Command{
+		Use:   "account",
 		Short: "delete an account from a group",
 		Long:  "delete an account from a group",
-		Args:  cobra.ExactArgs(0),
+		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if opts.account == "" || opts.gid == "" {
-				terminal.Error("account name and group are required (--account, --gid)")
+			if len(args) <= 0 {
+				terminal.Error("account key required (group@account)")
 				return
 			}
 
-			groupKey, err := terminal.ReadPassword("(%s) password: ", opts.gid)
+			groupKey, err := terminal.ReadPassword("(%s) password: ", args[0])
 			if err != nil {
 				terminal.Error(err.Error())
 				return
@@ -39,15 +51,13 @@ func cmdDel(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 				}
 			}
 
-			if err := sherlock.DeleteAccount(ctx, opts.gid, opts.account, groupKey); err != nil {
+			if err := sherlock.UpdateState(ctx, args[0], groupKey, internal.OptAccDelete()); err != nil {
 				terminal.Error(err.Error())
 				return
 			}
-			terminal.Success("account %q successfully deleted from %q", opts.account, opts.gid)
+			terminal.Success("account %q successfully deleted", args[0])
 		},
 	}
-	del.Flags().StringVarP(&opts.gid, "gid", "g", "default", "group from which to delete the account")
-	del.Flags().StringVarP(&opts.account, "account", "a", "", "account name to delete")
 	del.Flags().BoolVarP(&opts.force, "force", "f", false, "will bypass [y/N] prompt")
 
 	return del

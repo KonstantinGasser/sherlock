@@ -11,49 +11,49 @@ func TestNewAccount(t *testing.T) {
 		password string
 		tag      string
 		insecure bool
-		expected error
+		created  bool
 	}{
 		{
 			name:     "testaccount",
 			password: "fsdf$35dfg0-43563sdf34",
 			tag:      "testing",
 			insecure: false,
-			expected: nil,
+			created:  true,
 		},
 		{
 			name:     "testaccount",
 			password: "helloworld",
 			tag:      "testing",
 			insecure: false,
-			expected: ErrInsecurePassword,
+			created:  false,
 		},
 		{
 			name:     "test account",
 			password: "helloworld",
 			tag:      "testing",
 			insecure: false,
-			expected: ErrInvalidAccountName,
+			created:  false,
 		},
 		{
 			name:     "testaccount",
 			password: "helloworld",
 			tag:      "testing",
 			insecure: true,
-			expected: nil,
+			created:  true,
 		},
 		{
 			name:     "",
 			password: "",
 			tag:      "testing",
 			insecure: false,
-			expected: ErrMissingValues,
+			created:  false,
 		},
 	}
 
 	for _, tc := range tt {
-		_, err := NewAccount(tc.name, tc.password, tc.tag, tc.insecure)
-		if err != tc.expected {
-			t.Fatalf("internal.NewAccount: want: %v, have: %v", tc.expected, err)
+		a, err := NewAccount(tc.name, tc.password, tc.tag, tc.insecure)
+		if (tc.created && a == nil) || (!tc.created && a != nil) {
+			t.Fatalf("internal.NewAccount: want:created==%v, have: error==%v", tc.created, err)
 		}
 	}
 }

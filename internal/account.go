@@ -40,8 +40,8 @@ func NewAccount(name, password, tag string, insecure bool) (*Account, error) {
 	if insecure {
 		return &a, nil
 	}
-	if level := a.secure(); level == security.Low {
-		return nil, ErrInsecurePassword
+	if err := a.secure(); err != nil {
+		return nil, err
 	}
 	return &a, nil
 }
@@ -56,7 +56,45 @@ func (a Account) valid() error {
 	return nil
 }
 
+type FieldUpdate func(*Account) error
+
+func updateFieldName(name string) FieldUpdate {
+	return func(a *Account) error {
+		a.Name = strings.TrimSpace(name)
+		return nil
+	}
+}
+
+func updateFieldPassword(password string, insecure bool) FieldUpdate {
+	return func(a *Account) error {
+		a.Password = strings.TrimSpace(password)
+		if insecure {
+			a.UpdatedOn = time.Now()
+			return nil
+		}
+		if err := a.secure(); err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
+func updateFieldTag(tag string) FieldUpdate {
+	return func(a *Account) error {
+		a.Tag = strings.TrimSpace(tag)
+		return nil
+	}
+}
+
+func (a *Account) update(opt FieldUpdate) error {
+	if err := opt(a); err != nil {
+		return err
+	}
+	a.UpdatedOn = time.Now()
+	return nil
+}
+
 // secure checks the Accounts on how secure it is
-func (a Account) secure() int {
+func (a Account) secure() error {
 	return security.PasswordStrength(a.Password)
 }
