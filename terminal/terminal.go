@@ -96,7 +96,7 @@ var bgC = []int{
 	tablewriter.BgBlueColor,
 	tablewriter.BgMagentaColor,
 	tablewriter.BgGreenColor,
-	tablewriter.BgHiYellowColor,
+	tablewriter.BgYellowColor,
 	tablewriter.BgHiRedColor,
 }
 
