@@ -7,6 +7,7 @@ require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/enescakir/emoji v1.0.0
 	github.com/fatih/color v1.7.0
+	github.com/m1/go-generate-password v0.0.0-20191114193340-84682ecbc3fd
 	github.com/olekukonko/tablewriter v0.0.5
 	github.com/spf13/afero v1.1.2
 	github.com/spf13/cobra v1.1.3
