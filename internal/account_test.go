@@ -14,28 +14,28 @@ func TestNewAccount(t *testing.T) {
 		created  bool
 	}{
 		{
-			name:     "testaccount",
+			name:     "group@testaccount",
 			password: "fsdf$35dfg0-43563sdf34",
 			tag:      "testing",
 			insecure: false,
 			created:  true,
 		},
 		{
-			name:     "testaccount",
+			name:     "group@testaccount",
 			password: "helloworld",
 			tag:      "testing",
 			insecure: false,
 			created:  false,
 		},
 		{
-			name:     "test account",
+			name:     "group@test account",
 			password: "helloworld",
 			tag:      "testing",
 			insecure: false,
 			created:  false,
 		},
 		{
-			name:     "testaccount",
+			name:     "group@testaccount",
 			password: "helloworld",
 			tag:      "testing",
 			insecure: true,

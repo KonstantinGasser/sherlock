@@ -88,6 +88,7 @@ type FileSystem interface {
 	GroupExists(name string) error
 	VaultExists(group string) error
 	ReadGroupVault(group string) ([]byte, error)
+	Delete(ctx context.Context, gid string) error
 	Write(ctx context.Context, gid string, data []byte) error
 }
 
@@ -128,6 +129,11 @@ func (sh *Sherlock) Setup(groupKey string) error {
 		return err
 	}
 	return nil
+}
+
+// DeleteGroup irreversible deletes a group from sherlock
+func (sh *Sherlock) DeleteGroup(ctx context.Context, gid string) error {
+	return sh.fileSystem.Delete(ctx, gid)
 }
 
 // SetupGroup creates the group in the file system
