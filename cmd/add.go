@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/KonstantinGasser/sherlock/internal"
 	"github.com/KonstantinGasser/sherlock/terminal"
@@ -60,6 +61,7 @@ type addAccountOptions struct {
 	gid      string
 	tag      string
 	insecure bool
+	gen      string
 }
 
 func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
@@ -73,15 +75,34 @@ func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comm
 				terminal.Error("account name not set (sherlock add account [account-name])")
 				return
 			}
+			generatedPasswordLength, err := strconv.ParseFloat(opts.gen, 64)
+			if err != nil {
+				terminal.Error("invalid length number for auto generated password")
+				return
+			}
+			if generatedPasswordLength != 0 && generatedPasswordLength < 10 {
+				terminal.Error("Auto generated password minimal length allowed is 10 characters")
+				return
+			}
 			groupKey, err := terminal.ReadPassword("(%s) password: ", opts.gid)
 			if err != nil {
 				terminal.Error(err.Error())
 				return
 			}
-			password, err := terminal.ReadPassword("(%s) password: ", args[0])
-			if err != nil {
-				terminal.Error(err.Error())
-				return
+			var password string
+			if generatedPasswordLength != 0 {
+				password, err = internal.AutoGeneratePassword(int(generatedPasswordLength))
+				if err != nil {
+					terminal.Error(err.Error())
+					return
+				}
+				terminal.Error("Generated password : %s", password)
+			} else {
+				password, err = terminal.ReadPassword("(%s) password: ", args[0])
+				if err != nil {
+					terminal.Error(err.Error())
+					return
+				}
 			}
 			account, err := internal.NewAccount(args[0], password, opts.tag, opts.insecure)
 			if err != nil {
@@ -99,6 +120,9 @@ func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comm
 	addGroup.Flags().StringVarP(&opts.gid, "gid", "G", "default", "group name where to add the account")
 	addGroup.Flags().StringVarP(&opts.tag, "tag", "t", "", "optional tag for this account")
 	addGroup.Flags().BoolVarP(&opts.insecure, "insecure", "i", false, "allow insecure group password")
+
+	// I set this to string to make input validation checking easier if the input data is not a valid number
+	addGroup.Flags().StringVarP(&opts.gen, "gen", "e", "", "length for auto-generate secure passsword. Create your own password when not set")
 
 	return addGroup
 }

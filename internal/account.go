@@ -7,6 +7,7 @@ import (
 
 	"github.com/KonstantinGasser/required"
 	"github.com/KonstantinGasser/sherlock/security"
+	"github.com/m1/go-generate-password/generator"
 )
 
 var (
@@ -97,4 +98,20 @@ func (a *Account) update(opt FieldUpdate) error {
 // secure checks the Accounts on how secure it is
 func (a Account) secure() error {
 	return security.PasswordStrength(a.Password)
+}
+
+func AutoGeneratePassword(passwordLength int) (string, error) {
+	config := generator.Config{
+		Length:                     passwordLength,
+		IncludeSymbols:             true,
+		IncludeNumbers:             true,
+		IncludeLowercaseLetters:    true,
+		IncludeUppercaseLetters:    true,
+		ExcludeSimilarCharacters:   true,
+		ExcludeAmbiguousCharacters: true,
+	}
+	g, _ := generator.New(&config)
+
+	pwd, err := g.Generate()
+	return *pwd, err
 }
