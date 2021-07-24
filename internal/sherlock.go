@@ -9,6 +9,8 @@ import (
 )
 
 const (
+	// querySplitPoint refers to the command line argument coming from the user
+	// in the form of group@account and the separator used for it
 	querySplitPoint = "@"
 )
 
@@ -18,6 +20,59 @@ var (
 	ErrWrongKey     = fmt.Errorf("wrong group key")
 	ErrInvalidQuery = fmt.Errorf("invalid query. Query should be %q", "group@account")
 )
+
+type StateOption func(g *Group, acc string) error
+
+// OptAccPassword returns a StateOption to change an account password
+func OptAccPassword(password string, insecure bool) StateOption {
+	return func(g *Group, acc string) error {
+		account, err := g.lookup(acc)
+		if err != nil {
+			return err
+		}
+		if err := account.update(updateFieldPassword(password, insecure)); err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
+// OptAccName returns a StateOption to change an account name
+func OptAccName(name string) StateOption {
+	return func(g *Group, acc string) error {
+		if ok := g.exists(name); ok {
+			return ErrAccountExists
+		}
+		account, err := g.lookup(acc)
+		if err != nil {
+			return err
+		}
+		if err := account.update(updateFieldName(name)); err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
+func OptsAccTag(tag string) StateOption {
+	return func(g *Group, acc string) error {
+		account, err := g.lookup(acc)
+		if err != nil {
+			return err
+		}
+		if err := account.update(updateFieldTag(tag)); err != nil {
+			return err
+		}
+		return nil
+	}
+}
+
+// OptAccDelete returns a StateOption deleting an account if it exists
+func OptAccDelete() StateOption {
+	return func(g *Group, acc string) error {
+		return g.delete(acc)
+	}
+}
 
 // FileSystem declares the functions sherlock requires to
 // interact with the underlying file system
@@ -71,13 +126,19 @@ func (sh *Sherlock) Setup(groupKey string) error {
 
 // SetupGroup creates the group in the file system
 // if the group does not already exists
-func (sh Sherlock) SetupGroup(name string, groupKey string) error {
+func (sh Sherlock) SetupGroup(name string, groupKey string, insecure bool) error {
 	if err := sh.GroupExists(name); err != nil {
 		return err
 	}
 	group, err := NewGroup(name)
 	if err != nil {
 		return err
+	}
+	if !insecure {
+		// check password strength for group key
+		if err := group.secure(groupKey); err != nil {
+			return err
+		}
 	}
 	vault, err := security.InitWithDefault(groupKey, group)
 	if err != nil {
@@ -117,56 +178,43 @@ func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, groupKey s
 	if err := group.append(account); err != nil {
 		return err
 	}
-	serialized, err := group.serizalize()
-	if err != nil {
-		return err
-	}
-	encrypted, err := security.EncryptVault(serialized, groupKey)
-	if err != nil {
-		return err
-	}
-	return sh.fileSystem.Write(ctx, gid, encrypted)
+	return sh.WriteGroup(ctx, gid, groupKey, &group)
 }
 
+// GetAccount looks up the requested account
+// to locate an account the query needs to include the group
+// like so group@account
 func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
-	keySet, err := sh.splitQuery(query)
+	gid, name, err := splitQuery(query)
 	if err != nil {
 		return nil, err
 	}
 
-	group, err := sh.LoadGroup(keySet[0], groupKey)
+	group, err := sh.LoadGroup(gid, groupKey)
 	if err != nil {
 		return nil, err
 	}
-	return group.lookup(keySet[1])
+	return group.lookup(name)
 }
 
-func (sh Sherlock) DeleteAccount(ctx context.Context, group, account string, groupKey string) error {
-	bytes, err := sh.fileSystem.ReadGroupVault(group)
+// UpdateState executes the passed in StateOption to perform state changes on a group
+func (sh Sherlock) UpdateState(ctx context.Context, query, groupKey string, opt StateOption) error {
+	gid, name, err := splitQuery(query)
 	if err != nil {
 		return err
 	}
 
-	var g Group
-	if err := security.DecryptVault(bytes, groupKey, &g); err != nil {
-		return err
-	}
-
-	if err := g.delete(account); err != nil {
-		return err
-	}
-
-	serialized, err := g.serizalize()
+	group, err := sh.LoadGroup(gid, groupKey)
 	if err != nil {
 		return err
 	}
-	encrypted, err := security.EncryptVault(serialized, groupKey)
-	if err != nil {
+	if err := opt(group, name); err != nil {
 		return err
 	}
-	return sh.fileSystem.Write(ctx, group, encrypted)
+	return sh.WriteGroup(ctx, gid, groupKey, group)
 }
 
+// LoadGroup loads and decrypts the group vault
 func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {
 	bytes, err := sh.fileSystem.ReadGroupVault(gid)
 	if err != nil {
@@ -179,10 +227,25 @@ func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {
 	return &group, nil
 }
 
-func (sh Sherlock) splitQuery(query string) ([]string, error) {
+// WriteGroup encrypts and write the group vault
+func (sh Sherlock) WriteGroup(ctx context.Context, gid string, groupKey string, group *Group) error {
+	serialized, err := group.serizalize()
+	if err != nil {
+		return err
+	}
+	encrypted, err := security.EncryptVault(serialized, groupKey)
+	if err != nil {
+		return err
+	}
+	return sh.fileSystem.Write(ctx, gid, encrypted)
+}
+
+// splitQuery verifies that a query (for get,update command) are in the correct
+// format: group@account
+func splitQuery(query string) (string, string, error) {
 	set := strings.Split(query, querySplitPoint)
 	if len(set) != 2 {
-		return nil, ErrInvalidQuery
+		return "", "", ErrInvalidQuery
 	}
-	return set, nil
+	return set[0], set[1], nil
 }
