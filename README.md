@@ -34,12 +34,12 @@ required the first time you use `sherlock`. It will let you define the main pass
 add allows to add either `groups` or `accounts` to `sherlock`
 
 ### command: group
-`sherlock add group detective` 
+`sherlock add --group detective` 
 
 `detective` will be its own group protected with a password
 
 ### command: account
-`sherlock add account bakerstreet --gid detective --tag 221b`
+`sherlock add account --name bakerstreet --gid detective --tag 221b`
 
 ### options:
 |Option|Description|
