@@ -10,6 +10,7 @@ import (
 
 type listOptions struct {
 	filterByTag string
+	all         bool
 }
 
 func cmdList(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
@@ -19,10 +20,21 @@ func cmdList(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 		Use:   "list",
 		Short: "list all accounts mapped to a given group",
 		Long:  "with the list command you can inspect all accounts mapped to a given group",
-		Args:  cobra.MaximumNArgs(1),
+		Args:  cobra.MaximumNArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
 			var gid = "default"
-			if len(args) > 0 {
+			if opts.all {
+				groupList, err := sherlock.ReadRegisteredGroups()
+				if err != nil {
+					terminal.Error(err.Error())
+					return
+				}
+				terminal.Info("Registered Groups : ")
+				for _, group := range groupList {
+					terminal.Info(group)
+				}
+				return
+			} else if len(args) > 0 {
 				gid = args[0]
 			}
 			groupKey, err := terminal.ReadPassword("(%s) password: ", gid)
@@ -45,6 +57,7 @@ func cmdList(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 		},
 	}
 	list.Flags().StringVarP(&opts.filterByTag, "tag", "t", "", "filter accounts by tag name")
+	list.Flags().BoolVarP(&opts.all, "all", "a", false, "show all registered groups")
 
 	return list
 }

@@ -83,6 +83,7 @@ type FileSystem interface {
 	VaultExists(group string) error
 	ReadGroupVault(group string) ([]byte, error)
 	Write(ctx context.Context, gid string, data []byte) error
+	ReadRegisteredGroups() ([]string, error)
 }
 
 type Sherlock struct {
@@ -235,4 +236,13 @@ func splitQuery(query string) (string, string, error) {
 		return "", "", ErrInvalidQuery
 	}
 	return set[0], set[1], nil
+}
+
+// ReadRegisteredGroups loads saved groups
+func (sh Sherlock) ReadRegisteredGroups() ([]string, error) {
+	groups, err := sh.fileSystem.ReadRegisteredGroups()
+	if err != nil {
+		return nil, err
+	}
+	return groups, nil
 }
