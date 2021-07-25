@@ -152,6 +152,19 @@ func (sh Sherlock) GroupExists(name string) error {
 	return sh.fileSystem.GroupExists(name)
 }
 
+// ValidateGroupKey function validates the group's key for the requested groupID
+func (sh *Sherlock) CheckGroupKey(ctx context.Context, gid, groupKey string) error {
+	bytes, err := sh.fileSystem.ReadGroupVault(gid)
+	if err != nil {
+		return err
+	}
+	var group Group
+	if err := security.DecryptVault(bytes, groupKey, &group); err != nil {
+		return ErrWrongKey
+	}
+	return nil
+}
+
 // AddAccount looks up the group-vault appending its accounts slice with the new account if the account does not
 // yet exists
 func (sh *Sherlock) AddAccount(ctx context.Context, account *Account, groupKey string, gid string) error {

@@ -80,7 +80,30 @@ func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comm
 				terminal.Error("invalid length number for auto generated password")
 				return
 			}
-			if generatedPasswordLength != 0 && generatedPasswordLength < 10 {
+
+      // check if the group exists
+			err := sherlock.GroupExists(opts.gid)
+			if err == nil {
+				terminal.Error("group doesn't exist")
+				return
+			}
+
+			groupKey, err := terminal.ReadPassword("(%s) password: ", opts.gid)
+			if err != nil {
+				terminal.Error(err.Error())
+				return
+			}
+
+			// validate the password/key
+			err = sherlock.CheckGroupKey(ctx, opts.gid, groupKey)
+			if err != nil {
+				terminal.Error(err.Error())
+				return
+			}
+
+			password, err := terminal.ReadPassword("account (%s) password: ", opts.name)
+
+      if generatedPasswordLength != 0 && generatedPasswordLength < 10 {
 				terminal.Error("Auto generated password minimal length allowed is 10 characters")
 				return
 			}
