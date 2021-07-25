@@ -125,3 +125,16 @@ func homepath() string {
 	home, _ := os.UserHomeDir()
 	return home
 }
+
+// Read All Groups Saved
+func (fs Fs) ReadRegisteredGroups() ([]string, error) {
+	groupList, err := afero.ReadDir(fs.mock, buildGroupPath(""))
+	if err != nil {
+		return nil, err
+	}
+	var groupListNames []string
+	for _, f := range groupList {
+		groupListNames = append(groupListNames, f.Name())
+	}
+	return groupListNames, nil
+}

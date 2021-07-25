@@ -27,7 +27,7 @@ type Account struct {
 // NewAccount creates a new Account and if insecure=false checks the password strength
 // returning an err if strength security.Low
 func NewAccount(query, password, tag string, insecure bool) (*Account, error) {
-	_, acc, err := splitQuery(query)
+	_, acc, err := SplitQuery(query)
 	if err != nil {
 		return nil, err
 	}

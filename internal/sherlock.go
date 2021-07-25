@@ -90,6 +90,7 @@ type FileSystem interface {
 	ReadGroupVault(group string) ([]byte, error)
 	Delete(ctx context.Context, gid string) error
 	Write(ctx context.Context, gid string, data []byte) error
+	ReadRegisteredGroups() ([]string, error)
 }
 
 type Sherlock struct {
@@ -163,11 +164,28 @@ func (sh Sherlock) GroupExists(name string) error {
 	return sh.fileSystem.GroupExists(name)
 }
 
+// ValidateGroupKey function validates the group's key for the requested groupID
+func (sh *Sherlock) CheckGroupKey(ctx context.Context, query, groupKey string) error {
+	gid, _, err := SplitQuery(query)
+	if err != nil {
+		return err
+	}
+	bytes, err := sh.fileSystem.ReadGroupVault(gid)
+	if err != nil {
+		return err
+	}
+	var group Group
+	if err := security.DecryptVault(bytes, groupKey, &group); err != nil {
+		return ErrWrongKey
+	}
+	return nil
+}
+
 // GetAccount looks up the requested account
 // to locate an account the query needs to include the group
 // like so group@account
 func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
-	gid, name, err := splitQuery(query)
+	gid, name, err := SplitQuery(query)
 	if err != nil {
 		return nil, err
 	}
@@ -181,7 +199,7 @@ func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
 
 // UpdateState executes the passed in StateOption to perform state changes on a group
 func (sh Sherlock) UpdateState(ctx context.Context, query, groupKey string, opt StateOption) error {
-	gid, name, err := splitQuery(query)
+	gid, name, err := SplitQuery(query)
 	if err != nil {
 		return err
 	}
@@ -222,12 +240,21 @@ func (sh Sherlock) WriteGroup(ctx context.Context, gid string, groupKey string, 
 	return sh.fileSystem.Write(ctx, gid, encrypted)
 }
 
-// splitQuery verifies that a query (for get,update command) are in the correct
+// SplitQuery verifies that a query (for get,update command) are in the correct
 // format: group@account
-func splitQuery(query string) (string, string, error) {
+func SplitQuery(query string) (string, string, error) {
 	set := strings.Split(query, querySplitPoint)
 	if len(set) != 2 {
 		return "", "", ErrInvalidQuery
 	}
 	return set[0], set[1], nil
+}
+
+// ReadRegisteredGroups loads saved groups
+func (sh Sherlock) ReadRegisteredGroups() ([]string, error) {
+	groups, err := sh.fileSystem.ReadRegisteredGroups()
+	if err != nil {
+		return nil, err
+	}
+	return groups, nil
 }
