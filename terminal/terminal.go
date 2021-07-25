@@ -42,6 +42,10 @@ func Info(format string, a ...interface{}) {
 	pretty(color.FgHiBlue, emoji.Emoji(emoji.BackhandIndexPointingRight.String()), format, a...)
 }
 
+func Warning(format string, a ...interface{}) {
+	pretty(color.FgYellow, emoji.Emoji(emoji.RaisedHand.String()), format, a...)
+}
+
 func Error(format string, a ...interface{}) {
 	pretty(color.FgRed, emoji.ExclamationMark, format, a...)
 }
@@ -96,7 +100,7 @@ var bgC = []int{
 	tablewriter.BgBlueColor,
 	tablewriter.BgMagentaColor,
 	tablewriter.BgGreenColor,
-	tablewriter.BgHiYellowColor,
+	tablewriter.BgYellowColor,
 	tablewriter.BgHiRedColor,
 }
 

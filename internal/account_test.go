@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"fmt"
 	"testing"
 	"unicode"
 )
@@ -16,28 +15,28 @@ func TestNewAccount(t *testing.T) {
 		created  bool
 	}{
 		{
-			name:     "testaccount",
+			name:     "group@testaccount",
 			password: "fsdf$35dfg0-43563sdf34",
 			tag:      "testing",
 			insecure: false,
 			created:  true,
 		},
 		{
-			name:     "testaccount",
+			name:     "group@testaccount",
 			password: "helloworld",
 			tag:      "testing",
 			insecure: false,
 			created:  false,
 		},
 		{
-			name:     "test account",
+			name:     "group@test account",
 			password: "helloworld",
 			tag:      "testing",
 			insecure: false,
 			created:  false,
 		},
 		{
-			name:     "testaccount",
+			name:     "group@testaccount",
 			password: "helloworld",
 			tag:      "testing",
 			insecure: true,
@@ -76,7 +75,7 @@ func TestPasswordGenerator(t *testing.T) {
 	if len(passwordRandom) != expectedLength {
 		t.Fatalf("Password Generator Error. want : %d, got: %d", expectedLength, len(passwordRandom))
 	}
-	fmt.Println([]interface{}{passwordRandom, passwordRandomTwo})
+
 	if passwordRandomTwo == passwordRandom {
 		t.Fatalf("Password Generator Error, Creating two similar password. firstPassword : %s, secondPassword: %s", passwordRandom, passwordRandomTwo)
 	}
