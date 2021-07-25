@@ -99,6 +99,11 @@ func (fs Fs) VaultExists(group string) error {
 	return ErrNoSuchVault
 }
 
+// Delete removes the passed in group directory irreversible from sherlock
+func (fs Fs) Delete(ctx context.Context, gid string) error {
+	return fs.mock.RemoveAll(buildGroupPath(gid))
+}
+
 func (fs Fs) Write(ctx context.Context, gid string, data []byte) error {
 	if err := afero.WriteFile(fs.mock, buildVaultPath(gid), data, os.ModeAppend); err != nil {
 		return err
@@ -106,17 +111,30 @@ func (fs Fs) Write(ctx context.Context, gid string, data []byte) error {
 	return nil
 }
 
-func buildGroupPath(group string) string {
-	return filepath.Join(homepath(), sherlockRoot, groupsDir, group)
+func buildGroupPath(gid string) string {
+	return filepath.Join(homepath(), sherlockRoot, groupsDir, gid)
 }
 
 // buildVaultPath creates a file path like
 // => $HOME/.sherlock/groups/{group}/.vault
-func buildVaultPath(group string) string {
-	return filepath.Join(homepath(), sherlockRoot, groupsDir, group, vaultFileName)
+func buildVaultPath(gid string) string {
+	return filepath.Join(homepath(), sherlockRoot, groupsDir, gid, vaultFileName)
 }
 
 func homepath() string {
 	home, _ := os.UserHomeDir()
 	return home
+}
+
+// Read All Groups Saved
+func (fs Fs) ReadRegisteredGroups() ([]string, error) {
+	groupList, err := afero.ReadDir(fs.mock, buildGroupPath(""))
+	if err != nil {
+		return nil, err
+	}
+	var groupListNames []string
+	for _, f := range groupList {
+		groupListNames = append(groupListNames, f.Name())
+	}
+	return groupListNames, nil
 }
