@@ -236,3 +236,7 @@ func splitQuery(query string) (string, string, error) {
 	}
 	return set[0], set[1], nil
 }
+
+func NameValidation(name string) bool {
+	return !strings.Contains(name, "@")
+}
