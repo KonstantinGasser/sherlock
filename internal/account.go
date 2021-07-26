@@ -7,6 +7,7 @@ import (
 
 	"github.com/KonstantinGasser/required"
 	"github.com/KonstantinGasser/sherlock/security"
+	"github.com/m1/go-generate-password/generator"
 )
 
 var (
@@ -26,9 +27,13 @@ type Account struct {
 
 // NewAccount creates a new Account and if insecure=false checks the password strength
 // returning an err if strength security.Low
-func NewAccount(name, password, tag string, insecure bool) (*Account, error) {
+func NewAccount(query, password, tag string, insecure bool) (*Account, error) {
+	_, acc, err := SplitQuery(query)
+	if err != nil {
+		return nil, err
+	}
 	a := Account{
-		Name:      name,
+		Name:      acc,
 		Password:  password,
 		CreatedOn: time.Now(),
 		UpdatedOn: time.Now(),
@@ -101,4 +106,20 @@ func (a *Account) update(opt FieldUpdate) error {
 // secure checks the Accounts on how secure it is
 func (a Account) secure() error {
 	return security.PasswordStrength(a.Password)
+}
+
+func AutoGeneratePassword(passwordLength int) (string, error) {
+	config := generator.Config{
+		Length:                     passwordLength,
+		IncludeSymbols:             true,
+		IncludeNumbers:             true,
+		IncludeLowercaseLetters:    true,
+		IncludeUppercaseLetters:    true,
+		ExcludeSimilarCharacters:   true,
+		ExcludeAmbiguousCharacters: true,
+	}
+	g, _ := generator.New(&config)
+
+	pwd, err := g.Generate()
+	return *pwd, err
 }
