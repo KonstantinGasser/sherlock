@@ -251,7 +251,7 @@ func SplitQuery(query string) (string, string, error) {
 }
 
 func NameValidation(name string) bool {
-	return !strings.Contains(name, "@")
+	return !strings.Contains(name, querySplitPoint)
 }
 
 // ReadRegisteredGroups loads saved groups
