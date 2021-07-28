@@ -14,9 +14,10 @@ const (
 )
 
 var (
-	ErrAccountExists    = fmt.Errorf("account for group already exists")
-	ErrNoSuchAccount    = fmt.Errorf("account not found")
-	ErrInvalidGroupName = fmt.Errorf("group name must be a consecutive string")
+	ErrAccountExists          = fmt.Errorf("account for group already exists")
+	ErrNoSuchAccount          = fmt.Errorf("account not found")
+	ErrInvalidGroupName       = fmt.Errorf("group name must be a consecutive string")
+	ErrInvalidGroupNameSymbol = fmt.Errorf("group name invalid. Please avoid using '@' character")
 )
 
 // Group groups Accounts
@@ -87,6 +88,9 @@ func (g Group) serizalize() ([]byte, error) {
 }
 
 func (g Group) valid() error {
+	if !NameValidation(g.GID) {
+		return ErrInvalidGroupNameSymbol
+	}
 	if err := required.Atomic(&g); err != nil {
 		return ErrMissingValues
 	}

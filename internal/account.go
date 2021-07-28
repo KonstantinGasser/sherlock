@@ -11,9 +11,10 @@ import (
 )
 
 var (
-	ErrInsecurePassword   = fmt.Errorf("provided password is insecure (use --insecure to ignore this message)")
-	ErrInvalidAccountName = fmt.Errorf("account name must be a consecutive string")
-	ErrMissingValues      = fmt.Errorf("account is missing required values")
+	ErrInsecurePassword         = fmt.Errorf("provided password is insecure (use --insecure to ignore this message)")
+	ErrInvalidAccountName       = fmt.Errorf("account name must be a consecutive string")
+	ErrMissingValues            = fmt.Errorf("account is missing required values")
+	ErrInvalidAccountNameSymbol = fmt.Errorf("account name invalid. Please avoid using '@' character")
 )
 
 type Account struct {
@@ -52,6 +53,9 @@ func NewAccount(query, password, tag string, insecure bool) (*Account, error) {
 }
 
 func (a Account) valid() error {
+	if !NameValidation(a.Name) {
+		return ErrInvalidAccountNameSymbol
+	}
 	if err := required.Atomic(&a); err != nil {
 		return ErrMissingValues
 	}

@@ -21,6 +21,10 @@ func TestCreateGoup(t *testing.T) {
 			name:   "test group",
 			expect: ErrInvalidGroupName,
 		},
+		{
+			name:   "test@group",
+			expect: ErrInvalidGroupNameSymbol,
+		},
 	}
 	for _, tc := range tt {
 		_, err := NewGroup(tc.name)
