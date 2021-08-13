@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"io"
 
+	"github.com/m1/go-generate-password/generator"
 	passwordvalidator "github.com/wagslane/go-password-validator"
 )
 
@@ -48,8 +49,8 @@ func InitWithDefault(key string, defaultVault interface{}) ([]byte, error) {
 	return encypted, err
 }
 
-// EncryptVault encrypts the data using the key
-func EncryptVault(b []byte, key string) ([]byte, error) {
+// Encrypt encrypts the data using the key
+func Encrypt(b []byte, key string) ([]byte, error) {
 	aeskey := hash(key)
 
 	block, err := aes.NewCipher(aeskey[:16])
@@ -68,11 +69,11 @@ func EncryptVault(b []byte, key string) ([]byte, error) {
 
 	stream.XORKeyStream(encrypted[aes.BlockSize:], b)
 
-	return encrypted, err
+	return encrypted, nil
 }
 
-// DecryptVault encrypts the data using the key
-func DecryptVault(b []byte, key string, v interface{}) error {
+// Decrypt encrypts the data using the key
+func Decrypt(b []byte, key string, v interface{}) error {
 	aesKey := hash(key)
 
 	block, err := aes.NewCipher(aesKey[:16])
@@ -96,4 +97,21 @@ func DecryptVault(b []byte, key string, v interface{}) error {
 // the variety and diversity of the chosen characters
 func PasswordStrength(password string) error {
 	return passwordvalidator.Validate(password, minStrength)
+}
+
+func GenPassword(len int) (string, error) {
+	gen, err := generator.New(&generator.Config{
+		Length:                     len,
+		IncludeSymbols:             true,
+		IncludeNumbers:             true,
+		IncludeLowercaseLetters:    true,
+		IncludeUppercaseLetters:    true,
+		ExcludeSimilarCharacters:   true,
+		ExcludeAmbiguousCharacters: true,
+	})
+	if err != nil {
+		return "", err
+	}
+	password, err := gen.Generate()
+	return *password, err
 }

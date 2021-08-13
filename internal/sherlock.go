@@ -3,6 +3,7 @@ package internal
 import (
 	"context"
 	"fmt"
+	"io/ioutil"
 	"strings"
 
 	"github.com/KonstantinGasser/sherlock/security"
@@ -175,8 +176,24 @@ func (sh *Sherlock) CheckGroupKey(ctx context.Context, query, groupKey string) e
 		return err
 	}
 	var group Group
-	if err := security.DecryptVault(bytes, groupKey, &group); err != nil {
+	if err := security.Decrypt(bytes, groupKey, &group); err != nil {
 		return ErrWrongKey
+	}
+	return nil
+}
+
+func (sh *Sherlock) EncryptFile(gid, groupKey, path string) error {
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	encrypted, err := security.Encrypt(bytes, groupKey)
+	if err != nil {
+		return err
+	}
+	if err := ioutil.WriteFile(path, encrypted, 0755); err != nil {
+		return err
 	}
 	return nil
 }
@@ -221,7 +238,7 @@ func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {
 		return nil, err
 	}
 	var group Group
-	if err := security.DecryptVault(bytes, groupKey, &group); err != nil {
+	if err := security.Decrypt(bytes, groupKey, &group); err != nil {
 		return nil, ErrWrongKey
 	}
 	return &group, nil
@@ -233,7 +250,7 @@ func (sh Sherlock) WriteGroup(ctx context.Context, gid string, groupKey string, 
 	if err != nil {
 		return err
 	}
-	encrypted, err := security.EncryptVault(serialized, groupKey)
+	encrypted, err := security.Encrypt(serialized, groupKey)
 	if err != nil {
 		return err
 	}

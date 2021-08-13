@@ -2,9 +2,9 @@ package cmd
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/KonstantinGasser/sherlock/internal"
+	"github.com/KonstantinGasser/sherlock/security"
 	"github.com/KonstantinGasser/sherlock/terminal"
 	"github.com/spf13/cobra"
 )
@@ -60,7 +60,8 @@ func cmdAddGroup(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comman
 type addAccountOptions struct {
 	tag      string
 	insecure bool
-	gen      string
+	generate bool
+	length   int
 }
 
 func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
@@ -71,10 +72,7 @@ func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comm
 		Long:  "add a new account to a sherlock group",
 		Args:  cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) <= 0 {
-				terminal.Error("account name not set (sherlock add account [account-name])")
-				return
-			}
+
 			// check if the group exists
 			gid, _, err := internal.SplitQuery(args[0])
 			if err != nil {
@@ -101,25 +99,21 @@ func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comm
 
 			// figure out password: either auto gen password or read from stdin
 			var password string
-			if opts.gen != "" { // generate password
-				passwdLen, err := strconv.Atoi(opts.gen)
-				if err != nil || passwdLen < 10 {
-					terminal.Error("invalid length number for auto generated password (must be number grater then 10")
-					return
-				}
-				password, err = internal.AutoGeneratePassword(passwdLen)
+			switch true {
+			case opts.generate:
+				password, err = security.GenPassword(opts.length)
 				if err != nil {
 					terminal.Error(err.Error())
 					return
 				}
-				terminal.Info("generated password : %s", password)
-			} else {
+			default:
 				password, err = terminal.ReadPassword("(%s) password: ", args[0])
 				if err != nil {
 					terminal.Error(err.Error())
 					return
 				}
 			}
+
 			// create/store new Account
 			account, err := internal.NewAccount(args[0], password, opts.tag, opts.insecure)
 			if err != nil {
@@ -136,9 +130,8 @@ func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comm
 
 	addGroup.Flags().StringVarP(&opts.tag, "tag", "t", "", "optional tag for this account")
 	addGroup.Flags().BoolVarP(&opts.insecure, "insecure", "i", false, "allow insecure group password")
-
-	// I set this to string to make input validation checking easier if the input data is not a valid number
-	addGroup.Flags().StringVarP(&opts.gen, "gen", "e", "", "length for auto-generate secure password. Create your own password when not set")
+	addGroup.Flags().BoolVarP(&opts.generate, "gen-password", "p", false, "auto-generate account password")
+	addGroup.Flags().IntVarP(&opts.length, "len", "l", 20, "length for auto-generated password")
 
 	return addGroup
 }

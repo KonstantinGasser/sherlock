@@ -14,5 +14,6 @@ func main() {
 
 	if err := cmd.RootCmd(sherlock).Execute(); err != nil {
 		terminal.Error("%s", err)
+
 	}
 }
