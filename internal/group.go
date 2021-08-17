@@ -10,6 +10,7 @@ import (
 )
 
 const (
+	defaultGroupName = "default"
 	prettyDateLayout = "Monday, 02. January 2006"
 )
 
@@ -23,6 +24,13 @@ var (
 type group struct {
 	GID      string     `json:"name" required:"yes"`
 	Accounts []*account `json:"accounts"`
+}
+
+func newDefaultGroup() *group {
+	return &group{
+		GID:      defaultGroupName,
+		Accounts: make([]*account, 0),
+	}
 }
 
 func NewGroup(name string) (*group, error) {

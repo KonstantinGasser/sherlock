@@ -16,9 +16,9 @@ var (
 	ErrMissingValues      = fmt.Errorf("account is missing required values")
 )
 
-// FieldUpdate is a function which can alter the fields of
+// fieldUpdate is a function which can alter the fields of
 // an account
-type FieldUpdate func(*account) error
+type fieldUpdate func(*account) error
 
 type account struct {
 	Name      string    `json:"name" required:"yes"`
@@ -65,14 +65,14 @@ func (a account) valid() error {
 	return nil
 }
 
-func updateFieldName(name string) FieldUpdate {
+func updateFieldName(name string) fieldUpdate {
 	return func(a *account) error {
 		a.Name = strings.TrimSpace(name)
 		return nil
 	}
 }
 
-func updateFieldPassword(password string, insecure bool) FieldUpdate {
+func updateFieldPassword(password string, insecure bool) fieldUpdate {
 	return func(a *account) error {
 		a.Password = strings.TrimSpace(password)
 		if insecure {
@@ -86,14 +86,14 @@ func updateFieldPassword(password string, insecure bool) FieldUpdate {
 	}
 }
 
-func updateFieldTag(tag string) FieldUpdate {
+func updateFieldTag(tag string) fieldUpdate {
 	return func(a *account) error {
 		a.Tag = strings.TrimSpace(tag)
 		return nil
 	}
 }
 
-func (a *account) update(opt FieldUpdate) error {
+func (a *account) update(opt fieldUpdate) error {
 	if err := opt(a); err != nil {
 		return err
 	}
