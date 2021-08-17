@@ -35,16 +35,18 @@ add allows to add either `groups` or `accounts` to `sherlock`
 
 ### command: group
 `sherlock add group detective` 
+|Option|Description|
+|-|-|
+|--insecure| allows insecure passwords|
 
-`detective` will be its own group protected with a password
+`detective` will be a new group protected with a password
 
 ### command: account
-`sherlock add account bakerstreet --gid detective --tag 221b`
+`sherlock add account detective@bakerstreet --tag 221b`
 
 ### options:
 |Option|Description|
 |-|-|
-|--gid `group`|will map account to group|
 |--tag | appends the account with a tag info|
 |--insecure| allows insecure passwords|
 
