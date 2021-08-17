@@ -43,6 +43,13 @@ func TestNewAccount(t *testing.T) {
 			created:  true,
 		},
 		{
+			name:     "gr@up@testaccount",
+			password: "helloworld",
+			tag:      "testing",
+			insecure: true,
+			created:  false,
+		},
+		{
 			name:     "",
 			password: "",
 			tag:      "testing",

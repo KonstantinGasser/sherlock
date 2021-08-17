@@ -280,6 +280,10 @@ func SplitQuery(query string) (string, string, error) {
 	return set[0], set[1], nil
 }
 
+func NameValidation(name string) bool {
+	return !strings.Contains(name, querySplitPoint)
+}
+
 // ReadRegisteredGroups loads saved groups
 func (sh Sherlock) ReadRegisteredGroups() ([]string, error) {
 	groups, err := sh.fileSystem.ReadRegisteredGroups()

@@ -11,9 +11,10 @@ import (
 )
 
 var (
-	ErrInsecurePassword   = fmt.Errorf("provided password is insecure (use --insecure to ignore this message)")
-	ErrInvalidAccountName = fmt.Errorf("account name must be a consecutive string")
-	ErrMissingValues      = fmt.Errorf("account is missing required values")
+	ErrInsecurePassword         = fmt.Errorf("provided password is insecure (use --insecure to ignore this message)")
+	ErrInvalidAccountName       = fmt.Errorf("account name must be a consecutive string")
+	ErrMissingValues            = fmt.Errorf("account is missing required values")
+	ErrInvalidAccountNameSymbol = fmt.Errorf("account name invalid. Please avoid using '@' character")
 )
 
 // fieldUpdate is a function which can alter the fields of
