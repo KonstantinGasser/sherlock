@@ -29,16 +29,16 @@ func TestSetup(t *testing.T) {
 
 func TestOptAccPassword(t *testing.T) {
 	tt := []struct {
-		g        Group
+		g        group
 		accName  string
 		newPass  string
 		insecure bool
 		ok       bool
 	}{
 		{
-			g: Group{
+			g: group{
 				GID: "test1",
-				Accounts: []*Account{
+				Accounts: []*account{
 					{
 						Name:     "test-acc1",
 						Password: "hello-world",
@@ -51,9 +51,9 @@ func TestOptAccPassword(t *testing.T) {
 			ok:       false,
 		},
 		{
-			g: Group{
+			g: group{
 				GID: "test2",
-				Accounts: []*Account{
+				Accounts: []*account{
 					{
 						Name:     "test-acc2",
 						Password: "hello-world",
@@ -66,9 +66,9 @@ func TestOptAccPassword(t *testing.T) {
 			ok:       true,
 		},
 		{
-			g: Group{
+			g: group{
 				GID: "test3",
-				Accounts: []*Account{
+				Accounts: []*account{
 					{
 						Name:     "test-acc3",
 						Password: "hello-world",
@@ -95,15 +95,15 @@ func TestOptAccPassword(t *testing.T) {
 
 func TestOptAccName(t *testing.T) {
 	tt := []struct {
-		g       Group
+		g       group
 		accName string
 		newName string
 		err     error
 	}{
 		{
-			g: Group{
+			g: group{
 				GID: "test1",
-				Accounts: []*Account{
+				Accounts: []*account{
 					{
 						Name: "test-acc1",
 					},
@@ -114,9 +114,9 @@ func TestOptAccName(t *testing.T) {
 			err:     nil,
 		},
 		{
-			g: Group{
+			g: group{
 				GID: "test2",
-				Accounts: []*Account{
+				Accounts: []*account{
 					{
 						Name: "test-acc2",
 					},
@@ -141,14 +141,14 @@ func TestOptAccName(t *testing.T) {
 
 func TestOptAccDelete(t *testing.T) {
 	tt := []struct {
-		g           Group
+		g           group
 		toBeDeleted string
 		err         error
 	}{
 		{
-			g: Group{
+			g: group{
 				GID: "test2",
-				Accounts: []*Account{
+				Accounts: []*account{
 					{
 						Name: "test1",
 					},

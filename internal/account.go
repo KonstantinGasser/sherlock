@@ -16,7 +16,11 @@ var (
 	ErrMissingValues      = fmt.Errorf("account is missing required values")
 )
 
-type Account struct {
+// FieldUpdate is a function which can alter the fields of
+// an account
+type FieldUpdate func(*account) error
+
+type account struct {
 	Name      string    `json:"name" required:"yes"`
 	Password  string    `json:"password" required:"yes"`
 	Tag       string    `json:"tag"`
@@ -26,12 +30,12 @@ type Account struct {
 
 // NewAccount creates a new Account and if insecure=false checks the password strength
 // returning an err if strength security.Low
-func NewAccount(query, password, tag string, insecure bool) (*Account, error) {
+func NewAccount(query, password, tag string, insecure bool) (*account, error) {
 	_, acc, err := SplitQuery(query)
 	if err != nil {
 		return nil, err
 	}
-	a := Account{
+	a := account{
 		Name:      acc,
 		Password:  password,
 		CreatedOn: time.Now(),
@@ -51,7 +55,7 @@ func NewAccount(query, password, tag string, insecure bool) (*Account, error) {
 	return &a, nil
 }
 
-func (a Account) valid() error {
+func (a account) valid() error {
 	if err := required.Atomic(&a); err != nil {
 		return ErrMissingValues
 	}
@@ -61,17 +65,15 @@ func (a Account) valid() error {
 	return nil
 }
 
-type FieldUpdate func(*Account) error
-
 func updateFieldName(name string) FieldUpdate {
-	return func(a *Account) error {
+	return func(a *account) error {
 		a.Name = strings.TrimSpace(name)
 		return nil
 	}
 }
 
 func updateFieldPassword(password string, insecure bool) FieldUpdate {
-	return func(a *Account) error {
+	return func(a *account) error {
 		a.Password = strings.TrimSpace(password)
 		if insecure {
 			a.UpdatedOn = time.Now()
@@ -85,13 +87,13 @@ func updateFieldPassword(password string, insecure bool) FieldUpdate {
 }
 
 func updateFieldTag(tag string) FieldUpdate {
-	return func(a *Account) error {
+	return func(a *account) error {
 		a.Tag = strings.TrimSpace(tag)
 		return nil
 	}
 }
 
-func (a *Account) update(opt FieldUpdate) error {
+func (a *account) update(opt FieldUpdate) error {
 	if err := opt(a); err != nil {
 		return err
 	}
@@ -100,7 +102,7 @@ func (a *Account) update(opt FieldUpdate) error {
 }
 
 // secure checks the Accounts on how secure it is
-func (a Account) secure() error {
+func (a account) secure() error {
 	return security.PasswordStrength(a.Password)
 }
 

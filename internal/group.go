@@ -20,15 +20,15 @@ var (
 )
 
 // Group groups Accounts
-type Group struct {
+type group struct {
 	GID      string     `json:"name" required:"yes"`
-	Accounts []*Account `json:"accounts"`
+	Accounts []*account `json:"accounts"`
 }
 
-func NewGroup(name string) (*Group, error) {
-	g := Group{
+func NewGroup(name string) (*group, error) {
+	g := group{
 		GID:      name,
-		Accounts: make([]*Account, 0),
+		Accounts: make([]*account, 0),
 	}
 	if err := g.valid(); err != nil {
 		return nil, err
@@ -37,7 +37,7 @@ func NewGroup(name string) (*Group, error) {
 }
 
 // append appends an account to a group if it does not already exists
-func (g *Group) append(account *Account) error {
+func (g *group) append(account *account) error {
 	if ok := g.exists(account.Name); ok {
 		return ErrAccountExists
 	}
@@ -45,7 +45,7 @@ func (g *Group) append(account *Account) error {
 	return nil
 }
 
-func (g Group) lookup(accountName string) (*Account, error) {
+func (g group) lookup(accountName string) (*account, error) {
 	for _, a := range g.Accounts {
 		if a.Name == accountName {
 			return a, nil
@@ -56,7 +56,7 @@ func (g Group) lookup(accountName string) (*Account, error) {
 
 // delete deletes a given account from the group, returns an ErrNoSuchAccount
 // if account not present
-func (g *Group) delete(account string) error {
+func (g *group) delete(account string) error {
 	var offset *int
 	for i, a := range g.Accounts {
 		if a.Name == account {
@@ -73,7 +73,7 @@ func (g *Group) delete(account string) error {
 
 // exists checks an account is already present in the group
 // using the account.Name as a pk
-func (g Group) exists(name string) bool {
+func (g group) exists(name string) bool {
 	for _, a := range g.Accounts {
 		if name == a.Name {
 			return true
@@ -82,11 +82,11 @@ func (g Group) exists(name string) bool {
 	return false
 }
 
-func (g Group) serizalize() ([]byte, error) {
+func (g group) serizalize() ([]byte, error) {
 	return json.Marshal(g)
 }
 
-func (g Group) valid() error {
+func (g group) valid() error {
 	if err := required.Atomic(&g); err != nil {
 		return ErrMissingValues
 	}
@@ -97,12 +97,12 @@ func (g Group) valid() error {
 }
 
 // secure evaluates the password strength of the group password
-func (g Group) secure(groupKey string) error {
+func (g group) secure(groupKey string) error {
 	return security.PasswordStrength(groupKey)
 }
 
 // Table builds the Group in such a way that it can be consumed by the tablewriter.Table
-func (g Group) Table(filter ...func(*Account) bool) [][]string {
+func (g group) Table(filter ...func(*account) bool) [][]string {
 	var accounts [][]string
 
 skipp:
@@ -123,8 +123,8 @@ skipp:
 	return accounts
 }
 
-func FilterByTag(tag string) func(*Account) bool {
-	return func(a *Account) bool {
+func FilterByTag(tag string) func(*account) bool {
+	return func(a *account) bool {
 		if len(tag) == 0 {
 			return true
 		}

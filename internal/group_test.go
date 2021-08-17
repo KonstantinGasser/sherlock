@@ -33,38 +33,38 @@ func TestCreateGoup(t *testing.T) {
 func TestGroupAppend(t *testing.T) {
 
 	tt := []struct {
-		group    Group
-		account  Account
+		group    group
+		account  account
 		expected error
 	}{
 		{
-			group: Group{
+			group: group{
 				GID: "test-group",
 				// accounts in this case only have the account name since the rest
 				// is not important for this test
-				Accounts: []*Account{
+				Accounts: []*account{
 					{
 						Name: "test",
 					},
 				},
 			},
-			account: Account{
+			account: account{
 				Name: "some-other-account",
 			},
 			expected: nil,
 		},
 		{
-			group: Group{
+			group: group{
 				GID: "test-group",
 				// accounts in this case only have the account name since the rest
 				// is not important for this test
-				Accounts: []*Account{
+				Accounts: []*account{
 					{
 						Name: "same-account",
 					},
 				},
 			},
-			account: Account{
+			account: account{
 				Name: "same-account",
 			},
 			expected: ErrAccountExists,
@@ -83,17 +83,17 @@ func TestGroupAppend(t *testing.T) {
 // will not be changed unexpectedly
 func TestFilterByTag(t *testing.T) {
 	tt := []struct {
-		account   Account
+		account   account
 		filterTag string
 		excpeted  bool
 	}{
 		{
-			account:   Account{Tag: "tag_1"},
+			account:   account{Tag: "tag_1"},
 			filterTag: "tag_1",
 			excpeted:  true,
 		},
 		{
-			account:   Account{Tag: "tag_2"},
+			account:   account{Tag: "tag_2"},
 			filterTag: "tag_1",
 			excpeted:  false,
 		},

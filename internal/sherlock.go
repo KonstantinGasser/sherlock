@@ -21,17 +21,17 @@ var (
 	ErrInvalidQuery = fmt.Errorf("invalid query. Query should be %q", "group@account")
 )
 
-type StateOption func(g *Group, acc string) error
+type StateOption func(g *group, acc string) error
 
-func OptAddAccount(account *Account) StateOption {
-	return func(g *Group, acc string) error {
+func OptAddAccount(account *account) StateOption {
+	return func(g *group, acc string) error {
 		return g.append(account)
 	}
 }
 
 // OptAccPassword returns a StateOption to change an account password
 func OptAccPassword(password string, insecure bool) StateOption {
-	return func(g *Group, acc string) error {
+	return func(g *group, acc string) error {
 		account, err := g.lookup(acc)
 		if err != nil {
 			return err
@@ -45,7 +45,7 @@ func OptAccPassword(password string, insecure bool) StateOption {
 
 // OptAccName returns a StateOption to change an account name
 func OptAccName(name string) StateOption {
-	return func(g *Group, acc string) error {
+	return func(g *group, acc string) error {
 		if ok := g.exists(name); ok {
 			return ErrAccountExists
 		}
@@ -61,7 +61,7 @@ func OptAccName(name string) StateOption {
 }
 
 func OptsAccTag(tag string) StateOption {
-	return func(g *Group, acc string) error {
+	return func(g *group, acc string) error {
 		account, err := g.lookup(acc)
 		if err != nil {
 			return err
@@ -75,7 +75,7 @@ func OptsAccTag(tag string) StateOption {
 
 // OptAccDelete returns a StateOption deleting an account if it exists
 func OptAccDelete() StateOption {
-	return func(g *Group, acc string) error {
+	return func(g *group, acc string) error {
 		return g.delete(acc)
 	}
 }
@@ -118,9 +118,9 @@ func (sh Sherlock) IsSetUp() error {
 // set which is required for every further command. Setup will create required directories
 // if those are missing
 func (sh *Sherlock) Setup(groupKey string) error {
-	vault, err := security.InitWithDefault(groupKey, Group{
+	vault, err := security.InitWithDefault(groupKey, group{
 		GID:      "default",
-		Accounts: make([]*Account, 0),
+		Accounts: make([]*account, 0),
 	})
 	if err != nil {
 		return err
@@ -174,8 +174,8 @@ func (sh *Sherlock) CheckGroupKey(ctx context.Context, query, groupKey string) e
 	if err != nil {
 		return err
 	}
-	var group Group
-	if err := security.Decrypt(bytes, groupKey, &group); err != nil {
+	var g group
+	if err := security.Decrypt(bytes, groupKey, &g); err != nil {
 		return ErrWrongKey
 	}
 	return nil
@@ -184,7 +184,7 @@ func (sh *Sherlock) CheckGroupKey(ctx context.Context, query, groupKey string) e
 // GetAccount looks up the requested account
 // to locate an account the query needs to include the group
 // like so group@account
-func (sh Sherlock) GetAccount(query string, groupKey string) (*Account, error) {
+func (sh Sherlock) GetAccount(query string, groupKey string) (*account, error) {
 	gid, name, err := SplitQuery(query)
 	if err != nil {
 		return nil, err
@@ -211,24 +211,24 @@ func (sh Sherlock) UpdateState(ctx context.Context, query, groupKey string, opt 
 	if err := opt(group, name); err != nil {
 		return err
 	}
-	return sh.WriteGroup(ctx, gid, groupKey, group)
+	return sh.writeGroup(ctx, gid, groupKey, group)
 }
 
 // LoadGroup loads and decrypts the group vault
-func (sh Sherlock) LoadGroup(gid string, groupKey string) (*Group, error) {
+func (sh Sherlock) LoadGroup(gid string, groupKey string) (*group, error) {
 	bytes, err := sh.fileSystem.ReadGroupVault(gid)
 	if err != nil {
 		return nil, err
 	}
-	var group Group
-	if err := security.Decrypt(bytes, groupKey, &group); err != nil {
+	var g group
+	if err := security.Decrypt(bytes, groupKey, &g); err != nil {
 		return nil, ErrWrongKey
 	}
-	return &group, nil
+	return &g, nil
 }
 
-// WriteGroup encrypts and write the group vault
-func (sh Sherlock) WriteGroup(ctx context.Context, gid string, groupKey string, group *Group) error {
+// writeGroup encrypts and write the group vault
+func (sh Sherlock) writeGroup(ctx context.Context, gid string, groupKey string, group *group) error {
 	serialized, err := group.serizalize()
 	if err != nil {
 		return err
