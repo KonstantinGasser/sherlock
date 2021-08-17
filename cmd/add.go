@@ -40,7 +40,7 @@ func cmdAddGroup(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comman
 				terminal.Error("group name not set (sherlock add group [group-name])")
 				return
 			}
-			groupKey, err := terminal.ReadPassword("(%s) password: ", args[0])
+			groupKey, err := terminal.ReadPassword("(%s) new password: ", args[0])
 			if err != nil {
 				terminal.Error(err.Error())
 				return
@@ -84,7 +84,7 @@ func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comm
 				return
 			}
 
-			groupKey, err := terminal.ReadPassword("(%s) password: ", args[0])
+			groupKey, err := terminal.ReadPassword("(%s) password: ", gid)
 			if err != nil {
 				terminal.Error(err.Error())
 				return
@@ -107,7 +107,7 @@ func cmdAddAccount(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comm
 					return
 				}
 			default:
-				password, err = terminal.ReadPassword("(%s) password: ", args[0])
+				password, err = terminal.ReadPassword("(%s) new password: ", args[0])
 				if err != nil {
 					terminal.Error(err.Error())
 					return
