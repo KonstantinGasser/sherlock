@@ -177,38 +177,3 @@ func TestOptAccDelete(t *testing.T) {
 
 	}
 }
-
-func TestNameValidation(t *testing.T) {
-	type testCase struct {
-		name     string
-		expected bool
-	}
-	var names []testCase = []testCase{
-		{
-			name:     "test",
-			expected: true,
-		},
-		{
-			name:     "@est",
-			expected: false,
-		},
-		{
-			name:     "t@st",
-			expected: false,
-		},
-		{
-			name:     "te@t",
-			expected: false,
-		},
-		{
-			name:     "tes@",
-			expected: false,
-		},
-	}
-	for _, testString := range names {
-		result := NameValidation(testString.name)
-		if result != testString.expected {
-			t.Fatalf("NameValidation for '%v' FAILED: expected: %v, result: %v", testString.name, testString.expected, result)
-		}
-	}
-}

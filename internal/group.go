@@ -102,6 +102,9 @@ func (g group) valid() error {
 	if set := strings.Split(g.GID, " "); len(set) != 1 {
 		return ErrInvalidGroupName
 	}
+	if strings.Contains(g.GID, querySplitPoint) {
+		return ErrInvalidGroupNameSymbol
+	}
 	return nil
 }
 
