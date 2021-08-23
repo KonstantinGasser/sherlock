@@ -33,7 +33,7 @@ required the first time you use `sherlock`. It will let you define the main pass
 
 ## add
 
-add allows to add either `groups` or `accounts` to `sherlock`
+add allows adding either `groups` or `accounts` to `sherlock`
 
 ### command: group
 
@@ -52,12 +52,12 @@ add allows to add either `groups` or `accounts` to `sherlock`
 
 |Option|Description|
 |-|-|
-|--tag | appends the account with a tag info|
+|--tag | appends the account with tag info|
 |--insecure| allows insecure passwords|
 
 ## del
 
-del allows to delete an `account` from sherlock
+del allows deleting an `account` from sherlock
 
 ### command: account
 
@@ -78,7 +78,7 @@ Option|Description|
 
 ## update
 
-allows to update the accounts password or account name
+allows updating the accounts password or account name
 
 ### command
 
@@ -93,7 +93,7 @@ allows to update the accounts password or account name
 
 ## list
 
-list all accounts from a `sherlock group`. If no group provided will use `default` group
+list all accounts from a `sherlock group`. If no group is provided will use `default` group
 ### command
 
 `sherlock list detective`
