@@ -42,6 +42,10 @@ func Info(format string, a ...interface{}) {
 	pretty(color.FgHiBlue, emoji.Emoji(emoji.BackhandIndexPointingRight.String()), format, a...)
 }
 
+func SingleRow(e emoji.Emoji, format string, a ...interface{}) {
+	pretty(color.FgHiBlue, e, format, a...)
+}
+
 func Warning(format string, a ...interface{}) {
 	pretty(color.FgYellow, emoji.Emoji(emoji.RaisedHand.String()), format, a...)
 }

@@ -5,6 +5,7 @@ import (
 
 	"github.com/KonstantinGasser/sherlock/internal"
 	"github.com/KonstantinGasser/sherlock/terminal"
+	"github.com/enescakir/emoji"
 	"github.com/spf13/cobra"
 )
 
@@ -31,7 +32,7 @@ func cmdList(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 				}
 				terminal.Info("Registered Groups : ")
 				for _, group := range groupList {
-					terminal.Info(group)
+					terminal.SingleRow(emoji.RadioButton, group)
 				}
 				return
 			} else if len(args) > 0 {
