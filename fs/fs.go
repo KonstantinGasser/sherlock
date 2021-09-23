@@ -134,6 +134,9 @@ func (fs Fs) ReadRegisteredGroups() ([]string, error) {
 	}
 	var groupListNames []string
 	for _, f := range groupList {
+		if !f.IsDir() {
+			continue
+		}
 		groupListNames = append(groupListNames, f.Name())
 	}
 	return groupListNames, nil
