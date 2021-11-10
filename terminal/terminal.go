@@ -50,6 +50,10 @@ func Warning(format string, a ...interface{}) {
 	pretty(color.FgYellow, emoji.Emoji(emoji.RaisedHand.String()), format, a...)
 }
 
+func Question(format string, a ...interface{}) {
+	pretty(color.FgYellow, emoji.Emoji(emoji.ThinkingFace.String()), format, a...)
+}
+
 func Error(format string, a ...interface{}) {
 	pretty(color.FgRed, emoji.ExclamationMark, format, a...)
 }
@@ -106,6 +110,7 @@ var bgC = []int{
 	tablewriter.BgGreenColor,
 	tablewriter.BgYellowColor,
 	tablewriter.BgHiRedColor,
+	tablewriter.BgHiBlackColor,
 }
 
 func ToTable(header []string, rows [][]string, opts ...func(*tablewriter.Table)) {
@@ -136,7 +141,7 @@ func padding(h []string) []string {
 }
 
 // TableWithCellMerge apply tablewriter.SetAuthMergeCellsByColumnIndex to the
-// table instance and enables tablewriter.SetRowLine.
+// table instance and enables tablewriter.SetRowLine
 // Allows to group rows by a column index
 func TableWithCellMerge(mergeByIndex int) func(*tablewriter.Table) {
 	return func(t *tablewriter.Table) {

@@ -25,6 +25,7 @@ func cmdSetup(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 				terminal.Error(err.Error())
 				return
 			}
+
 			if err := sherlock.Setup(groupKey); err != nil {
 				terminal.Error(err.Error())
 				return

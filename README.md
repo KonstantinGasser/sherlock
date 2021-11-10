@@ -127,3 +127,4 @@ Project dependencies/libraries:
 - [enescakir/emoji](https://github.com/enescakir/emoji)
 - [spf13/cobra](https://github.com/spf13/cobra)
 - [fatih/color](https://github.com/fatih/color)
+

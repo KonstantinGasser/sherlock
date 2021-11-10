@@ -7,7 +7,6 @@ import (
 
 	"github.com/KonstantinGasser/required"
 	"github.com/KonstantinGasser/sherlock/security"
-	"github.com/m1/go-generate-password/generator"
 )
 
 var (
@@ -15,6 +14,8 @@ var (
 	ErrInvalidAccountName       = fmt.Errorf("account name must be a consecutive string")
 	ErrMissingValues            = fmt.Errorf("account is missing required values")
 	ErrInvalidAccountNameSymbol = fmt.Errorf("account name invalid. Please avoid using '@' character")
+
+	expirationDur = 6
 )
 
 // fieldUpdate is a function which can alter the fields of
@@ -54,6 +55,20 @@ func NewAccount(query, password, tag string, insecure bool) (*account, error) {
 		return nil, err
 	}
 	return &a, nil
+}
+
+// Expiration computes whether an account password is marked as expired
+// or not. By default a password counts as expired if the updated field
+// is >= 6 month ago
+func (a account) Expiration() string {
+	expDate := a.UpdatedOn.AddDate(0, expirationDur, 0)
+
+	inMonth := int(time.Until(expDate).Seconds() / 2600640)
+
+	if inMonth <= 0 {
+		return fmt.Sprintf("expired %d month ago", inMonth*-1)
+	}
+	return fmt.Sprintf("expires in %d month", inMonth)
 }
 
 func (a account) valid() error {
@@ -105,20 +120,4 @@ func (a *account) update(opt fieldUpdate) error {
 // secure checks the Accounts on how secure it is
 func (a account) secure() error {
 	return security.PasswordStrength(a.Password)
-}
-
-func AutoGeneratePassword(passwordLength int) (string, error) {
-	config := generator.Config{
-		Length:                     passwordLength,
-		IncludeSymbols:             true,
-		IncludeNumbers:             true,
-		IncludeLowercaseLetters:    true,
-		IncludeUppercaseLetters:    true,
-		ExcludeSimilarCharacters:   true,
-		ExcludeAmbiguousCharacters: true,
-	}
-	g, _ := generator.New(&config)
-
-	pwd, err := g.Generate()
-	return *pwd, err
 }

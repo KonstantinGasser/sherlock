@@ -114,11 +114,11 @@ func (g group) secure(groupKey string) error {
 }
 
 // Table builds the Group in such a way that it can be consumed by the tablewriter.Table
-func (g group) Table(filter ...func(*account) bool) [][]string {
+func (g group) Table(verbose bool, filter ...func(*account) bool) [][]string {
 	var accounts [][]string
 
 skipp:
-	for _, item := range g.Accounts {
+	for i, item := range g.Accounts {
 		for _, f := range filter {
 			if !f(item) {
 				continue skipp
@@ -129,8 +129,14 @@ skipp:
 			item.Name,
 			strings.Join([]string{"#", item.Tag}, ""),
 			item.CreatedOn.Format(prettyDateLayout),
-			item.UpdatedOn.Format(prettyDateLayout),
+			// item.UpdatedOn.Format(prettyDateLayout),
 		})
+		if verbose {
+			accounts[i] = append(accounts[i],
+				item.UpdatedOn.Format(prettyDateLayout),
+				item.Expiration(),
+			)
+		}
 	}
 	return accounts
 }

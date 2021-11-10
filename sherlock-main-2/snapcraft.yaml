@@ -1,0 +1,16 @@
+name: sherlock
+version: git
+summary: Easy CLI password manager
+description: |
+  easy and simple to use cli password manager.
+confinement: devmode
+base: core18
+parts:
+  sherlock:
+    plugin: go
+    go-importpath: github.com/KonstantinGasser/sherlock
+    source: .
+    source-type: git
+apps:
+  sherlock:
+    command: bin/sherlock

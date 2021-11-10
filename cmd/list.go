@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/KonstantinGasser/sherlock/internal"
 	"github.com/KonstantinGasser/sherlock/terminal"
@@ -12,6 +13,7 @@ import (
 type listOptions struct {
 	filterByTag string
 	all         bool
+	verbose     bool
 }
 
 func cmdList(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
@@ -48,9 +50,17 @@ func cmdList(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 				terminal.Error(err.Error())
 				return
 			}
+
+			headers := []string{"Group", "Account", "#Tag", "Created On"}
+			if opts.verbose {
+				headers = append(headers, "Updated On", "Expires In")
+			}
+			fmt.Println(group.Table(opts.verbose))
+			fmt.Println(headers)
 			terminal.ToTable(
-				[]string{"Group", "Account", "#Tag", "Created On", "Updated On"},
+				headers,
 				group.Table(
+					opts.verbose,
 					internal.FilterByTag(opts.filterByTag),
 				),
 				terminal.TableWithCellMerge(0),
@@ -59,6 +69,7 @@ func cmdList(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 	}
 	list.Flags().StringVarP(&opts.filterByTag, "tag", "t", "", "filter accounts by tag name")
 	list.Flags().BoolVarP(&opts.all, "all", "a", false, "show all registered groups")
+	list.Flags().BoolVarP(&opts.verbose, "verbose", "v", false, "display additional information")
 
 	return list
 }

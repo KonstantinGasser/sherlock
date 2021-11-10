@@ -2,6 +2,7 @@ package internal
 
 import (
 	"testing"
+	"time"
 )
 
 func TestNewAccount(t *testing.T) {
@@ -61,6 +62,38 @@ func TestNewAccount(t *testing.T) {
 		a, err := NewAccount(tc.name, tc.password, tc.tag, tc.insecure)
 		if (tc.created && a == nil) || (!tc.created && a != nil) {
 			t.Fatalf("internal.NewAccount: want:created==%v, have: error==%v", tc.created, err)
+		}
+	}
+}
+
+func TestAccountExpiratin(t *testing.T) {
+
+	tt := []struct {
+		name     string
+		a        account
+		expected string
+	}{
+		{
+			name: "expiration time 6 month from time.Now",
+			a: account{
+				UpdatedOn: time.Now(),
+			},
+			expected: "expires in 6 month",
+		},
+		{
+			name: "expired 6 month ago",
+			a: account{
+				UpdatedOn: time.Now().AddDate(-1, 0, 0),
+			},
+			expected: "expired 6 month ago",
+		},
+	}
+
+	for _, tc := range tt {
+		expText := tc.a.Expiration()
+
+		if expText != tc.expected {
+			t.Fatalf("account.Expiration: want=%q, have: %q", tc.expected, expText)
 		}
 	}
 }

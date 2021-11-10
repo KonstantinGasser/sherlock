@@ -53,8 +53,8 @@ func cmdDelGroup(ctx context.Context, sherlock *internal.Sherlock) *cobra.Comman
 				// show verbose output of all account which will be deleted
 				terminal.Warning("following accounts will be deleted with the group:")
 				terminal.ToTable(
-					[]string{"Group", "Account", "#Tag", "Created On", "Updated On"},
-					group.Table(),
+					[]string{"Group", "Account", "#Tag", "Created On"},
+					group.Table(false),
 					terminal.TableWithCellMerge(0),
 				)
 				if yes := terminal.YesNo("delete group with [y/N]: "); !yes {
