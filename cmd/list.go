@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/KonstantinGasser/sherlock/internal"
 	"github.com/KonstantinGasser/sherlock/terminal"
@@ -55,8 +54,7 @@ func cmdList(ctx context.Context, sherlock *internal.Sherlock) *cobra.Command {
 			if opts.verbose {
 				headers = append(headers, "Updated On", "Expires In")
 			}
-			fmt.Println(group.Table(opts.verbose))
-			fmt.Println(headers)
+
 			terminal.ToTable(
 				headers,
 				group.Table(

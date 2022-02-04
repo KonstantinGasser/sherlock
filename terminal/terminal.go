@@ -105,12 +105,12 @@ func prettyNoNewLine(c color.Attribute, e emoji.Emoji, f string, a ...interface{
 }
 
 var bgC = []int{
-	tablewriter.BgBlueColor,
-	tablewriter.BgMagentaColor,
-	tablewriter.BgGreenColor,
-	tablewriter.BgYellowColor,
-	tablewriter.BgHiRedColor,
-	tablewriter.BgHiBlackColor,
+	tablewriter.FgBlueColor,
+	tablewriter.FgMagentaColor,
+	tablewriter.FgGreenColor,
+	tablewriter.FgYellowColor,
+	tablewriter.FgHiRedColor,
+	tablewriter.FgHiBlackColor,
 }
 
 func ToTable(header []string, rows [][]string, opts ...func(*tablewriter.Table)) {

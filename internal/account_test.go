@@ -78,14 +78,14 @@ func TestAccountExpiratin(t *testing.T) {
 			a: account{
 				UpdatedOn: time.Now(),
 			},
-			expected: "expires in 6 month",
+			expected: "valid for 180 days 22 hours",
 		},
 		{
 			name: "expired 6 month ago",
 			a: account{
 				UpdatedOn: time.Now().AddDate(-1, 0, 0),
 			},
-			expected: "expired 6 month ago",
+			expected: "expired 185 days 2 hours ago",
 		},
 	}
 

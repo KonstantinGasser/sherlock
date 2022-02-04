@@ -129,7 +129,6 @@ skipp:
 			item.Name,
 			strings.Join([]string{"#", item.Tag}, ""),
 			item.CreatedOn.Format(prettyDateLayout),
-			// item.UpdatedOn.Format(prettyDateLayout),
 		})
 		if verbose {
 			accounts[i] = append(accounts[i],

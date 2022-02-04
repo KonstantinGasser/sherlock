@@ -2,6 +2,7 @@ package internal
 
 import (
 	"fmt"
+	"math"
 	"strings"
 	"time"
 
@@ -15,6 +16,8 @@ var (
 	ErrMissingValues            = fmt.Errorf("account is missing required values")
 	ErrInvalidAccountNameSymbol = fmt.Errorf("account name invalid. Please avoid using '@' character")
 
+	// expirationDur refers to the month until a password is
+	// not marked as expired
 	expirationDur = 6
 )
 
@@ -59,16 +62,27 @@ func NewAccount(query, password, tag string, insecure bool) (*account, error) {
 
 // Expiration computes whether an account password is marked as expired
 // or not. By default a password counts as expired if the updated field
-// is >= 6 month ago
+// is >= expirationDur month ago
 func (a account) Expiration() string {
-	expDate := a.UpdatedOn.AddDate(0, expirationDur, 0)
+	// to the last time the password was updated add the maxExpirationDuration
+	expirationDate := a.UpdatedOn.AddDate(0, expirationDur, 0)
 
-	inMonth := int(time.Until(expDate).Seconds() / 2600640)
+	diff := time.Since(expirationDate)
 
-	if inMonth <= 0 {
-		return fmt.Sprintf("expired %d month ago", inMonth*-1)
+	// dont panic: if hours is zero division by zero will
+	// cause days to be zero (as by the go language)
+	days := int(math.Ceil(diff.Hours() / 24))
+	hours := int(math.Ceil(diff.Hours())) % 24
+
+	if hours > 0 { // password has expired
+		return fmt.Sprintf("expired %v days %v hours ago", days, hours)
 	}
-	return fmt.Sprintf("expires in %d month", inMonth)
+
+	// since days and hours will if valid be negative
+	// multiply by -1 to make them positive
+	validDays := days * (-1)
+	validHours := hours * (-1)
+	return fmt.Sprintf("valid for %v days %v hours", validDays, validHours)
 }
 
 func (a account) valid() error {
