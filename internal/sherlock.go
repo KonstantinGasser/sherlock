@@ -221,7 +221,7 @@ func (sh Sherlock) GetAccount(query string, groupKey string) (*account, error) {
 //
 // it allows to modify a group/account (adding accounts, changing account) through the passed StateOption.
 func (sh Sherlock) UpdateState(ctx context.Context, query, groupKey string, opt StateOption) error {
-	gid, name, err := SplitQuery(query)
+	gid, account, err := SplitQuery(query)
 	if err != nil {
 		return err
 	}
@@ -230,7 +230,7 @@ func (sh Sherlock) UpdateState(ctx context.Context, query, groupKey string, opt 
 	if err != nil {
 		return err
 	}
-	if err := opt(group, name); err != nil {
+	if err := opt(group, account); err != nil {
 		return err
 	}
 	return sh.writeGroup(ctx, gid, groupKey, group)

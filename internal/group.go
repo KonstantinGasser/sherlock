@@ -66,17 +66,17 @@ func (g group) lookup(accountName string) (*account, error) {
 // delete deletes a given account from the group, returns an ErrNoSuchAccount
 // if account not present
 func (g *group) delete(account string) error {
-	var offset *int
+	var offset int = -1
 	for i, a := range g.Accounts {
 		if a.Name == account {
-			offset = &i
+			offset = i
 		}
 	}
-	if offset == nil {
+	if offset == -1 {
 		return ErrNoSuchAccount
 	}
 
-	g.Accounts = append(g.Accounts[:*offset], g.Accounts[*offset+1:]...)
+	g.Accounts = append(g.Accounts[:offset], g.Accounts[offset+1:]...)
 	return nil
 }
 
