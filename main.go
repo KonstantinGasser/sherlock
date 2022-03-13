@@ -1,19 +1,18 @@
+/*
+Copyright © 2022 Konstantin Gasser konstantin.gasser@me.com
+
+*/
 package main
 
 import (
+	"os"
+
 	"github.com/KonstantinGasser/sherlock/cmd"
-	"github.com/KonstantinGasser/sherlock/fs"
-	"github.com/KonstantinGasser/sherlock/internal"
-	"github.com/KonstantinGasser/sherlock/terminal"
-	"github.com/spf13/afero"
 )
 
 func main() {
-	fileSystem := fs.New(afero.NewOsFs())
-	sherlock := internal.NewSherlock(fileSystem)
 
-	if err := cmd.RootCmd(sherlock).Execute(); err != nil {
-		terminal.Error("%s", err)
-
+	if err := cmd.RootCommand(nil).Execute(); err != nil {
+		os.Exit(1)
 	}
 }

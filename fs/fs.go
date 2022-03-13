@@ -1,10 +1,8 @@
 package fs
 
 import (
-	"bytes"
-	"context"
+	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 
@@ -12,132 +10,81 @@ import (
 )
 
 const (
-	sherlockRoot  = ".sherlock"
-	groupsDir     = "groups"
-	defaultGroup  = "default"
-	vaultFileName = ".vault"
+	// basepath is the path in which all
+	// sherlock related information is written/read from
+	basepath   = ".sherlock"
+	spacespath = "spaces"
 )
 
-var (
-	ErrNoSuchGroup = fmt.Errorf("group not found in sherlock")
-	ErrNoSuchVault = fmt.Errorf("vault for group not found in sherlock")
-	ErrGroupExists = fmt.Errorf("group already exists")
-)
-
-type Fs struct {
-	mock afero.Fs
+type Filesystem struct {
+	// using afero's implementation of
+	// the filesystems allows for easier and
+	// cleaner testing
+	fs afero.Fs
 }
 
-func New(mock afero.Fs) *Fs {
-	return &Fs{
-		mock: mock,
+// New returns the filesystem implementation required by
+// sherlock.
+//
+// The Filesystem satisfies the Initializer interface
+// For testing proposes the filesystem can be created with
+// an in-memory filesystem using the afero.NewMemMapFs
+func New(fs afero.Fs) *Filesystem {
+	return &Filesystem{
+		fs: fs,
 	}
 }
 
-// ReadVault reads the stored .vault file
-func (fs Fs) ReadGroupVault(group string) ([]byte, error) {
-	return afero.ReadFile(fs.mock, buildVaultPath(group))
-}
+// Initialize initializes the required folder structure for sherlock
+//
+// under the sherlock-root `.sherlock` the folder `spaces` with a `default`
+// space will be created. If
+func (fs Filesystem) Initialize(key string, space []byte) error {
 
-// InitFs creates all directories required to be setup to use
-// sherlock. If the directory exists nothing happens
-func (fs Fs) InitFs(initVault []byte) error {
-	if err := fs.mock.MkdirAll(filepath.Join(homepath(), sherlockRoot, groupsDir, defaultGroup), 0777); err != nil {
-		return err
-	}
-
-	f, err := fs.mock.OpenFile(buildVaultPath(defaultGroup), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0777)
+	defaultPath, err := spacepath(key)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
 
-	if _, err := io.Copy(f, bytes.NewReader(initVault)); err != nil {
-		return err
+	// do nothing if sherlock is already initialized
+	if exists(defaultPath) {
+		return nil
 	}
-	return nil
+	// ensure sherlock folder structure is created
+	// 0770 only current user can read/write/execute
+	if err := os.MkdirAll(defaultPath, 0770); err != nil {
+		return fmt.Errorf("could not create sherlock folder structure: %v", err)
+	}
+
+	// write space in default namespace
+	return fs.Write(key, space)
 }
 
-// CreateGroup creates a new directory for a given group with its .vault file.
-// if the group already exists it will be overwritten! To check if a group exists you should use the
-// fs.GroupExists func
-func (fs Fs) CreateGroup(name string, initVault []byte) error {
-	if err := fs.mock.MkdirAll(filepath.Join(homepath(), sherlockRoot, groupsDir, name), 0777); err != nil {
-		return err
-	}
-	f, err := fs.mock.OpenFile(buildVaultPath(name), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0777)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-
-	if _, err := io.Copy(f, bytes.NewReader(initVault)); err != nil {
-		return err
-	}
-	return nil
+func (fs Filesystem) Write(key string, space []byte) error {
+	return fmt.Errorf("not implemented yet")
 }
 
-func (fs Fs) GroupExists(name string) error {
-	_, err := fs.mock.Stat(buildGroupPath(name))
+// spacepath builds the path in which a space
+// can be found.
+// While the base of the path is always the same
+// the actual space directory depends on the space.Key
+func spacepath(key string) (string, error) {
+	home, err := userhome()
 	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
+		return "", fmt.Errorf("could not locate user home direcotry: %v", err)
+	}
+	return filepath.Join(home, basepath, spacespath, key), nil
+}
+
+func userhome() (string, error) {
+	return os.UserHomeDir()
+}
+
+func exists(path string) bool {
+	if _, err := os.Stat(path); err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			return false
 		}
-		return err
 	}
-	return ErrGroupExists
-}
-
-func (fs Fs) VaultExists(group string) error {
-	_, err := fs.mock.Stat(buildVaultPath(group))
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
-		return err
-	}
-	return ErrNoSuchVault
-}
-
-// Delete removes the passed in group directory irreversible from sherlock
-func (fs Fs) Delete(ctx context.Context, gid string) error {
-	return fs.mock.RemoveAll(buildGroupPath(gid))
-}
-
-func (fs Fs) Write(ctx context.Context, gid string, data []byte) error {
-	if err := afero.WriteFile(fs.mock, buildVaultPath(gid), data, os.ModeAppend); err != nil {
-		return err
-	}
-	return nil
-}
-
-func buildGroupPath(gid string) string {
-	return filepath.Join(homepath(), sherlockRoot, groupsDir, gid)
-}
-
-// buildVaultPath creates a file path like
-// => $HOME/.sherlock/groups/{group}/.vault
-func buildVaultPath(gid string) string {
-	return filepath.Join(homepath(), sherlockRoot, groupsDir, gid, vaultFileName)
-}
-
-func homepath() string {
-	home, _ := os.UserHomeDir()
-	return home
-}
-
-// Read All Groups Saved
-func (fs Fs) ReadRegisteredGroups() ([]string, error) {
-	groupList, err := afero.ReadDir(fs.mock, buildGroupPath(""))
-	if err != nil {
-		return nil, err
-	}
-	var groupListNames []string
-	for _, f := range groupList {
-		if !f.IsDir() {
-			continue
-		}
-		groupListNames = append(groupListNames, f.Name())
-	}
-	return groupListNames, nil
+	return true
 }
