@@ -22,7 +22,7 @@ type Space struct {
 	// guardian allows the space to perform
 	// the encryption and decryption of account and
 	// file data
-	guardian security.EncryptDecrypter
+	guardian security.Encrypter
 	// Accounts stores all accounts mapped to the space
 	Accounts *accounts
 }
@@ -57,8 +57,34 @@ func New(key string) *Space {
 	}
 }
 
+// To think about::
+// 	Should the space be serializable, or should the space have a function which returns
+// 	a CipherSpace which then can be (de-)serialized?
+// 	This way one could work with a Space with no issues and would not need to worry about encrypting/decrypting?
+// 		Process::
+//			Write after modification
+//			-> create Space
+//				-> do something with it
+//					-> call ToCipherSpace() (encrypt accounts) // implements Serializer interface
+//						-> write CipherSpace to filesystem
+//
+//			Read for modification
+//			-> read space bytes from filesystem
+//				-> unmarshal into CipherSpace
+//					-> Deserialize to Space (decrypt account(s))
+//						-> do something with the Space
+
 // Serialize marshal's the content of a space
+//
+// While the Space meta-data such as the space.Key will not be encrypted
+// all accounts listed in the account type will be. However, the keys of each account
+// will remain un-encrypted and human readable.
+// As a result Serialize returns a byte slice of JSON-Space Object
 func (space Space) Serialize() ([]byte, error) {
+
+	/*
+		encrypt all accounts within the space
+	*/
 
 	loginsEncry, err := space.marshalAccount(space.Accounts.Logins) // this is ok. fixing in post, once account types exist
 	if err != nil {
@@ -85,8 +111,9 @@ func (space Space) Serialize() ([]byte, error) {
 	}, "", "\t")
 }
 
-// marshalAccount
-func (space Space) marshalAccount(accs map[string]account.Serializer) ([]byte, error) {
+// marshalAccount returns a serialized JSON-Object where each account is encrypted using the
+// space passphrase
+func (space Space) marshalAccount(passphrase string, accs map[string]account.Serializer) ([]byte, error) {
 	out := make(map[string]interface{})
 
 	for key, acc := range accs {
@@ -95,7 +122,7 @@ func (space Space) marshalAccount(accs map[string]account.Serializer) ([]byte, e
 			return nil, err
 		}
 
-		encrypted, err := space.guardian.Encrypt("", b) // where do we get the passphrase ??
+		encrypted, err := space.guardian.Encrypt(passphrase, b) // where do we get the passphrase from ??
 		if err != nil {
 			return nil, err
 		}
@@ -103,4 +130,61 @@ func (space Space) marshalAccount(accs map[string]account.Serializer) ([]byte, e
 	}
 
 	return json.MarshalIndent(out, "", "\t")
+}
+
+// CipherSpace represents a space where all accounts
+// are stored as bytes (encrypted). This type should be
+// used when reading and unmarshaling a space from the
+// filesystem
+type CipherSpace struct {
+	Key      string
+	guardian security.Decrypter
+	Accounts map[string]map[string][]byte
+}
+
+// ToSpace asserts the CipherSpace to a regular Space
+// All Accounts within the CipherSpace are decrypted
+func (cSpace CipherSpace) ToSpace(passphrase string) (*Space, error) {
+
+	logins, err := cSpace.unmarshalAccount(passphrase, cSpace.Accounts["Logins"], nil)
+	if err != nil {
+		return nil, err
+	}
+
+	awsConsoles, err := cSpace.unmarshalAccount(passphrase, cSpace.Accounts["AwsConsoles"], nil)
+	if err != nil {
+		return nil, err
+	}
+
+	AwsApiAccesses, err := cSpace.unmarshalAccount(passphrase, cSpace.Accounts["AwsApiAccesses"], nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return &Space{
+		Key:      cSpace.Key,
+		guardian: security.Guard{},
+		Accounts: &accounts{
+			Logins:         logins,
+			AwsConsoles:    awsConsoles,
+			AwsApiAccesses: AwsApiAccesses,
+		},
+	}, nil
+
+}
+
+func (cSpace CipherSpace) unmarshalAccount(passphrase string, accs map[string][]byte, newFunc func() interface{}) (map[string]interface{}, error) {
+
+	var out map[string]interface{}
+
+	for key, acc := range accs {
+
+		var newAccount = newFunc()
+		if err := cSpace.guardian.Decrypt(passphrase, acc, &newAccount); err != nil {
+			return nil, err
+		}
+		out[key] = newAccount
+	}
+
+	return out, nil
 }
