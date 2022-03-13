@@ -77,7 +77,8 @@ func spacepath(key string) (string, error) {
 }
 
 func userhome() (string, error) {
-	return os.UserHomeDir()
+	// return os.UserHomeDir()
+	return "./", nil // for testing
 }
 
 func exists(path string) bool {

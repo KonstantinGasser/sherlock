@@ -17,6 +17,13 @@ type Space struct {
 	Accounts *accounts
 }
 
+// accounts manages all available sherlock accounts
+//
+// info:
+//		each account within its map is encrypted,
+//		the meta-data for an account is human readable.
+//		while serializing the space only the actual accounts
+// 		must be encrypted.
 type accounts struct {
 	// Logins holds all Login Types mapped to the space
 	Logins map[string]interface{} // type not there yet
@@ -39,7 +46,7 @@ func New(key string) *Space {
 	}
 }
 
-// Serialize marshales the content of a space
+// Serialize marshal's the content of a space
 func (space Space) Serialize() ([]byte, error) {
 	return json.MarshalIndent(space, "", "\t")
 }
