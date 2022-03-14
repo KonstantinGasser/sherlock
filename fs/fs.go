@@ -11,10 +11,18 @@ import (
 
 const (
 	// basepath is the path in which all
-	// sherlock related information is written/read from
+	// sherlock related information is written/read to/from
 	basepath   = ".sherlock"
 	spacespath = "spaces"
 )
+
+type Serializer interface {
+	Serialize() ([]byte, error)
+}
+
+type Deserializer interface {
+	Deserialize(v []byte) error
+}
 
 type Filesystem struct {
 	// using afero's implementation of
@@ -26,7 +34,8 @@ type Filesystem struct {
 // New returns the filesystem implementation required by
 // sherlock.
 //
-// The Filesystem satisfies the Initializer interface
+// The Filesystem implements the Initializer, Writer and Reader
+// interfaces
 // For testing proposes the filesystem can be created with
 // an in-memory filesystem using the afero.NewMemMapFs
 func New(fs afero.Fs) *Filesystem {
@@ -62,6 +71,10 @@ func (fs Filesystem) Initialize(key string, space []byte) error {
 
 func (fs Filesystem) Write(key string, space []byte) error {
 	return fmt.Errorf("not implemented yet")
+}
+
+func (fs Filesystem) Read(key string) ([]byte, error) {
+	return nil, fmt.Errorf("not implemented yet")
 }
 
 // spacepath builds the path in which a space

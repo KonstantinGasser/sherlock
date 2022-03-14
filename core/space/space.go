@@ -8,6 +8,12 @@ import (
 	"github.com/KonstantinGasser/sherlock/security"
 )
 
+const (
+	jsonKeyLogin          = "Logins"
+	jsonKeyAwsConsole     = "AwsConsoles"
+	jsonKeyAwsApiAccesses = "AwsApiAccesses"
+)
+
 // Space is an isolated directory to store accounts and files
 //
 // A space in sherlock describes a collection of accounts in
@@ -24,7 +30,7 @@ type Space struct {
 	// file data
 	guardian security.Encrypter
 	// Accounts stores all accounts mapped to the space
-	Accounts *accounts
+	Accounts *Accounts
 }
 
 // accounts manages all available sherlock accounts
@@ -34,129 +40,154 @@ type Space struct {
 //		the meta-data for an account is human readable.
 //		while serializing the space only the actual accounts (login,aws-*)
 // 		must be encrypted.
-type accounts struct {
+type Accounts struct {
 	// Logins holds all Login Types mapped to the space
-	Logins map[string]interface{} // type not there yet
+	Logins map[string]*account.Login // type not there yet
 	// AwsConsoles holds all AWS-Console login Types mapped
 	// to the space
-	AwsConsoles map[string]interface{} // type not there yet
+	AwsConsoles map[string]*account.AwsConsole
 	// AwsApiAccesses holds all AWS-Programmatic-Access identities
 	// mapped to the space
-	AwsApiAccesses map[string]interface{} // type not there yet
+	AwsApiAccesses map[string]*account.AwsApiAccess
 }
 
 func New(key string) *Space {
 	return &Space{
 		Key:      key,
 		guardian: security.Guard{},
-		Accounts: &accounts{
-			Logins:         make(map[string]interface{}),
-			AwsConsoles:    make(map[string]interface{}),
-			AwsApiAccesses: make(map[string]interface{}),
+		Accounts: &Accounts{
+			Logins:         make(map[string]*account.Login),
+			AwsConsoles:    make(map[string]*account.AwsConsole),
+			AwsApiAccesses: make(map[string]*account.AwsApiAccess),
 		},
 	}
 }
 
-// To think about::
-// 	Should the space be serializable, or should the space have a function which returns
-// 	a CipherSpace which then can be (de-)serialized?
-// 	This way one could work with a Space with no issues and would not need to worry about encrypting/decrypting?
-// 		Process::
-//			Write after modification
-//			-> create Space
-//				-> do something with it
-//					-> call ToCipherSpace() (encrypt accounts) // implements Serializer interface
-//						-> write CipherSpace to filesystem
-//
-//			Read for modification
-//			-> read space bytes from filesystem
-//				-> unmarshal into CipherSpace
-//					-> Deserialize to Space (decrypt account(s))
-//						-> do something with the Space
+func (space Space) ToCipherSpace(passphrase string) (*CipherSpace, error) {
 
-// Serialize marshal's the content of a space
-//
-// While the Space meta-data such as the space.Key will not be encrypted
-// all accounts listed in the account type will be. However, the keys of each account
-// will remain un-encrypted and human readable.
-// As a result Serialize returns a byte slice of JSON-Space Object
-func (space Space) Serialize() ([]byte, error) {
+	var marshal = func(passphrase string, accs interface{}) (map[string][]byte, error) {
+		// uff this feels like a hack...
+		// issue is that I cannot pass in a map[string]account.Login when accs is a map[string]account.Serializer
+		// even-though the account.Login for example implements the account.Serializer interface
+		tmp, ok := accs.(map[string]account.Serializer)
+		if !ok {
+			return nil, fmt.Errorf("sherlock account type must implement the account.Serializer interface")
+		}
+		out := make(map[string][]byte)
 
-	/*
-		encrypt all accounts within the space
-	*/
+		for key, acc := range tmp {
+			b, err := acc.Serialize()
+			if err != nil {
+				return nil, err
+			}
 
-	loginsEncry, err := space.marshalAccount(space.Accounts.Logins) // this is ok. fixing in post, once account types exist
+			encrypted, err := space.guardian.Encrypt(passphrase, b) // where do we get the passphrase from ??
+			if err != nil {
+				return nil, err
+			}
+			out[key] = encrypted
+		}
+
+		return out, nil
+	}
+
+	loginsEncry, err := marshal(passphrase, space.Accounts.Logins)
 	if err != nil {
 		return nil, fmt.Errorf("could not encrypt Login Accounts: %v", err)
 	}
 
-	awsConsoleEncry, err := space.marshalAccount(space.Accounts.AwsConsoles)
+	awsConsoleEncry, err := marshal(passphrase, space.Accounts.AwsConsoles)
 	if err != nil {
 		return nil, fmt.Errorf("could not encrypt AWS-Console Accounts: %v", err)
 	}
 
-	awsApiAccessEncry, err := space.marshalAccount(space.Accounts.AwsApiAccesses)
+	awsApiAccessEncry, err := marshal(passphrase, space.Accounts.AwsApiAccesses)
 	if err != nil {
 		return nil, fmt.Errorf("could not encrypt AWS-API Access Accounts: %v", err)
 	}
 
-	return json.MarshalIndent(map[string]interface{}{
-		"Key": space.Key,
-		"Accounts": map[string]interface{}{
-			"Logins":         loginsEncry,
-			"AwsConsoles":    awsConsoleEncry,
-			"AwsApiAccesses": awsApiAccessEncry,
+	return &CipherSpace{
+		Key: space.Key,
+		Accounts: map[string]map[string][]byte{
+			jsonKeyLogin:          loginsEncry,
+			jsonKeyAwsConsole:     awsConsoleEncry,
+			jsonKeyAwsApiAccesses: awsApiAccessEncry,
 		},
-	}, "", "\t")
-}
-
-// marshalAccount returns a serialized JSON-Object where each account is encrypted using the
-// space passphrase
-func (space Space) marshalAccount(passphrase string, accs map[string]account.Serializer) ([]byte, error) {
-	out := make(map[string]interface{})
-
-	for key, acc := range accs {
-		b, err := acc.Serialize()
-		if err != nil {
-			return nil, err
-		}
-
-		encrypted, err := space.guardian.Encrypt(passphrase, b) // where do we get the passphrase from ??
-		if err != nil {
-			return nil, err
-		}
-		out[key] = encrypted
-	}
-
-	return json.MarshalIndent(out, "", "\t")
+	}, nil
 }
 
 // CipherSpace represents a space where all accounts
 // are stored as bytes (encrypted). This type should be
 // used when reading and unmarshaling a space from the
-// filesystem
+// filesystem and can be seen as a transfer struct to a Space
+//
+// CipherSpace implements the Serializer & Deserializer interface
 type CipherSpace struct {
 	Key      string
 	guardian security.Decrypter
+
+	// Example structure of Accounts
+	// {
+	// 	"Login": {
+	// 		"login-1": encrypted-data,
+	// 		"...": "..."
+	// 	},
+	// 	"AwsConsoles": {...},
+	//	"AwsApiAccesses": {...}
+	// }
 	Accounts map[string]map[string][]byte
+}
+
+func NewCipher(key string) *CipherSpace {
+	return &CipherSpace{
+		Key:      key,
+		guardian: security.Guard{},
+		Accounts: make(map[string]map[string][]byte),
+	}
+}
+
+func (cSpace CipherSpace) Serialize() ([]byte, error) {
+	return json.MarshalIndent(cSpace, "", "\t")
+}
+
+func (cSpace *CipherSpace) Deserialize(v []byte) error {
+
+	if err := json.Unmarshal(v, cSpace); err != nil {
+		return err
+	}
+
+	cSpace.guardian = security.Guard{}
+	return nil
 }
 
 // ToSpace asserts the CipherSpace to a regular Space
 // All Accounts within the CipherSpace are decrypted
 func (cSpace CipherSpace) ToSpace(passphrase string) (*Space, error) {
 
-	logins, err := cSpace.unmarshalAccount(passphrase, cSpace.Accounts["Logins"], nil)
+	var unmarshal = func(passphrase string, accs map[string][]byte, newFunc func() interface{}) (map[string]interface{}, error) {
+		var out map[string]interface{}
+
+		for key, acc := range accs {
+			var newAccount = newFunc()
+			if err := cSpace.guardian.Decrypt(passphrase, acc, &newAccount); err != nil {
+				return nil, err
+			}
+			out[key] = newAccount
+		}
+		return out, nil
+	}
+
+	logins, err := unmarshal(passphrase, cSpace.Accounts[jsonKeyLogin], nil)
 	if err != nil {
 		return nil, err
 	}
 
-	awsConsoles, err := cSpace.unmarshalAccount(passphrase, cSpace.Accounts["AwsConsoles"], nil)
+	awsConsoles, err := unmarshal(passphrase, cSpace.Accounts[jsonKeyAwsConsole], nil)
 	if err != nil {
 		return nil, err
 	}
 
-	AwsApiAccesses, err := cSpace.unmarshalAccount(passphrase, cSpace.Accounts["AwsApiAccesses"], nil)
+	AwsApiAccesses, err := unmarshal(passphrase, cSpace.Accounts[jsonKeyAwsApiAccesses], nil)
 	if err != nil {
 		return nil, err
 	}
@@ -164,27 +195,11 @@ func (cSpace CipherSpace) ToSpace(passphrase string) (*Space, error) {
 	return &Space{
 		Key:      cSpace.Key,
 		guardian: security.Guard{},
-		Accounts: &accounts{
+		Accounts: &Accounts{
 			Logins:         logins,
 			AwsConsoles:    awsConsoles,
 			AwsApiAccesses: AwsApiAccesses,
 		},
 	}, nil
 
-}
-
-func (cSpace CipherSpace) unmarshalAccount(passphrase string, accs map[string][]byte, newFunc func() interface{}) (map[string]interface{}, error) {
-
-	var out map[string]interface{}
-
-	for key, acc := range accs {
-
-		var newAccount = newFunc()
-		if err := cSpace.guardian.Decrypt(passphrase, acc, &newAccount); err != nil {
-			return nil, err
-		}
-		out[key] = newAccount
-	}
-
-	return out, nil
 }

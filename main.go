@@ -10,6 +10,15 @@ import (
 	"github.com/KonstantinGasser/sherlock/cmd"
 )
 
+type (
+	Aer interface {
+		A()
+	}
+	B struct{}
+)
+
+func (b B) A() {}
+
 func main() {
 
 	if err := cmd.RootCommand(nil).Execute(); err != nil {
