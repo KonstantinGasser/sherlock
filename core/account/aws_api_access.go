@@ -8,6 +8,8 @@ type AwsApiAccess struct {
 	Region    string
 }
 
+func DefaultAwsApiAccess() Account { return new(AwsApiAccess) }
+
 func (awsA AwsApiAccess) Serialize() ([]byte, error) {
 	return json.Marshal(awsA)
 }

@@ -5,6 +5,7 @@ Copyright © 2022 Konstantin Gasser konstantin.gasser@me.com
 package cmd
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/spf13/cobra"
@@ -25,5 +26,8 @@ func RootCommand(notThereYet interface{}) *cobra.Command {
 		},
 	}
 
+	ctx := context.Background()
+	root.AddCommand(cmdSetup(ctx, nil))
+	root.AddCommand(cmdAdd(ctx, nil))
 	return root
 }

@@ -12,8 +12,13 @@ import (
 const (
 	// basepath is the path in which all
 	// sherlock related information is written/read to/from
-	basepath   = ".sherlock"
+	basepath = ".sherlock"
+	// spacespath is the path in which all user created
+	// spaces are stored, including the default space
 	spacespath = "spaces"
+	// filespath is the path in which encrypted files within
+	// a space will be stored
+	filespaths = "files"
 )
 
 type Serializer interface {
