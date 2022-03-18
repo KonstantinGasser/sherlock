@@ -46,14 +46,14 @@ type Accounts struct {
 	Logins account.Account
 	// AwsConsoles holds all AWS-Console login Types mapped
 	// to the space
-	AwsConsoles map[string]account.Account
+	AwsConsoles account.Account
 	// AwsApiAccesses holds all AWS-Programmatic-Access identities
 	// mapped to the space
 	// I am not a fan of the map[string]account.Account type of thing..
 	// However, go maps with custom interfaces ignore that concrete types implementing
 	// the interface. It would be nice if Logins,Aws* could keep their type..
 	// Think: re-implement logic to store accounts
-	AwsApiAccesses map[string]account.Account
+	AwsApiAccesses account.Account
 }
 
 func New(key string) *Space {
@@ -62,8 +62,8 @@ func New(key string) *Space {
 		guardian: &security.Guard{},
 		Accounts: &Accounts{
 			Logins:         new(account.Logins),
-			AwsConsoles:    make(map[string]account.Account),
-			AwsApiAccesses: make(map[string]account.Account),
+			AwsConsoles:    make(account.AwsConsoles),
+			AwsApiAccesses: make(account.AwsApiAccesses),
 		},
 	}
 }
@@ -75,12 +75,12 @@ func (space Space) ToCipherSpace(passphrase string) (*CipherSpace, error) {
 		return nil, fmt.Errorf("could not encrypt Login Accounts: %v", err)
 	}
 
-	awsConsoleEncry, err := marshal(passphrase, space.Accounts.AwsConsoles)
+	awsConsoleEncry, err := space.Accounts.AwsConsoles.Encrypt(space.guardian, passphrase)
 	if err != nil {
 		return nil, fmt.Errorf("could not encrypt AWS-Console Accounts: %v", err)
 	}
 
-	awsApiAccessEncry, err := marshal(passphrase, space.Accounts.AwsApiAccesses)
+	awsApiAccessEncry, err := space.Accounts.AwsApiAccesses.Encrypt(space.guardian, passphrase)
 	if err != nil {
 		return nil, fmt.Errorf("could not encrypt AWS-API Access Accounts: %v", err)
 	}
@@ -148,12 +148,12 @@ func (cSpace CipherSpace) ToSpace(passphrase string) (*Space, error) {
 		return nil, err
 	}
 
-	awsConsoles, err := unmarshal(passphrase, cSpace.Accounts[jsonKeyAwsConsole], account.DefaultAwsConsole)
+	awsConsoles, err := account.DefaultAwsConsoles().Decrypt(cSpace.guardian, cSpace.Accounts[jsonKeyAwsConsole], passphrase)
 	if err != nil {
 		return nil, err
 	}
 
-	AwsApiAccesses, err := unmarshal(passphrase, cSpace.Accounts[jsonKeyAwsApiAccesses], account.DefaultAwsApiAccess)
+	AwsApiAccesses, err := account.DefaultAwsAccesses().Decrypt(cSpace.guardian, cSpace.Accounts[jsonKeyAwsApiAccesses], passphrase)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,48 @@
 package account
 
-import "encoding/json"
+import (
+	"encoding/json"
+
+	"github.com/KonstantinGasser/sherlock/security"
+)
+
+type AwsConsoles map[string]*AwsConsole
+
+func DefaultAwsConsoles() *AwsConsoles { return new(AwsConsoles) }
+
+func (consoles AwsConsoles) Encrypt(encry security.Encrypter, passpharase string) (map[string][]byte, error) {
+	out := make(map[string][]byte)
+
+	for key, console := range consoles {
+		b, err := console.JSON()
+		if err != nil {
+			return nil, err
+		}
+		encryBytes, err := encry.Encrypt(passpharase, b)
+		if err != nil {
+			return nil, err
+		}
+
+		out[key] = encryBytes
+	}
+	return out, nil
+}
+
+func (consoles AwsConsoles) Decrypt(decry security.Decrypter, v map[string][]byte, passphrase string) (Account, error) {
+	for key, encryAccess := range v {
+		var console AwsConsole
+
+		if err := decry.Decrypt(passphrase, encryAccess, &console); err != nil {
+			return nil, err
+		}
+		consoles[key] = &console
+	}
+	return consoles, nil
+}
+
+func (consoles AwsConsoles) Find(key string, v interface{}) error {
+	return nil
+}
 
 type AwsConsole struct {
 	AccountID   [12]byte
@@ -8,16 +50,6 @@ type AwsConsole struct {
 	Password    string
 }
 
-func DefaultAwsConsole() Account { return new(AwsConsole) }
-
-func NewAwsConsole(id [12]byte, name, password string) *AwsConsole {
-	return &AwsConsole{
-		AccountID:   id,
-		AccountName: name,
-		Password:    password,
-	}
-}
-
-func (awsC AwsConsole) Serialize() ([]byte, error) {
-	return json.Marshal(awsC)
+func (console AwsConsole) JSON() ([]byte, error) {
+	return json.Marshal(console)
 }
