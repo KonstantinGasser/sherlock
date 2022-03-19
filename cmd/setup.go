@@ -9,13 +9,12 @@ import (
 )
 
 func cmdSetup(ctx context.Context, sh *core.Sherlock) *cobra.Command {
-	return &cobra.Command{
+	var overwrite bool
+	setup := &cobra.Command{
 		Use:   "setup",
 		Short: "setup allows to initially set-up a main password for your vault",
 		Long:  "to encrypt and decrypt your vault you will need to set-up a main password",
 		Run: func(cmd *cobra.Command, args []string) {
-
-			// check if already setup ????
 
 			out.Info("please provide a password to encrypt the default sherlock space...")
 			passphrase, err := out.ReadPassword("(default) space password: ")
@@ -33,4 +32,7 @@ func cmdSetup(ctx context.Context, sh *core.Sherlock) *cobra.Command {
 			out.Banner()
 		},
 	}
+
+	setup.Flags().BoolVarP(&overwrite, "overwrite", "o", false, "if set will delete the current default space and creates a new empty one")
+	return setup
 }
