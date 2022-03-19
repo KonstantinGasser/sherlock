@@ -31,13 +31,17 @@ func NewSherlock(fs SherlockFS) (*Sherlock, error) {
 // in the users home directory with a `.sherlock` folder.
 // Further, InitSherlock ensures that a default space.Space
 // is present - if not it creates one
-func InitSherlock(passphrase string, initer Initializer) error {
+func (sh Sherlock) Init(passphrase string) error {
 	defaultSpace, err := space.New(defaultNameSpace).ToCipherSpace(passphrase)
 	if err != nil {
 		return err
 	}
 
-	return initer.Initialize(defaultSpace.Key, defaultSpace)
+	return sh.fs.Init(defaultSpace.Key, defaultSpace)
+}
+
+func (sh Sherlock) IsSetup() error {
+	return sh.fs.IsSetup()
 }
 
 func (sh Sherlock) AddSpace(passphrase string, key string) error {

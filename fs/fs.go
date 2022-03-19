@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -21,6 +22,9 @@ const (
 	// filespath is the path in which encrypted files within
 	// a space will be stored
 	filespaths = "files"
+
+	// defaultSpace is the space which is created automatically on set-up
+	defaultSpace = "default"
 )
 
 type Serializer interface {
@@ -55,7 +59,7 @@ func New(fs afero.Fs) *Filesystem {
 //
 // under the sherlock-root `.sherlock` the folder `spaces` with a `default`
 // space will be created. If
-func (fs Filesystem) Initialize(key string, s Serializer) error {
+func (fs Filesystem) Init(key string, s Serializer) error {
 
 	defaultPath, err := spacepath(key)
 	if err != nil {
@@ -74,6 +78,44 @@ func (fs Filesystem) Initialize(key string, s Serializer) error {
 
 	// write space in default namespace
 	return fs.Write(key, s)
+}
+
+func (fs Filesystem) IsSetup() error {
+	defaultPath, err := spacepath(defaultSpace)
+	if err != nil {
+		return err
+	}
+	// make sure directories required exists
+	if !exists(defaultPath) {
+		return fmt.Errorf("default space not found")
+	}
+
+	// make sure default space is not empty (TODO: check if default space is ok and not corrupted)
+	b, err := os.ReadFile(filepath.Join(defaultPath, spacefile))
+	if err != nil {
+		return fmt.Errorf("could not read default space")
+	}
+
+	var tmp map[string]interface{} // used to check if file has valid JSON
+	if err := json.Unmarshal(b, &tmp); err != nil {
+		return fmt.Errorf(`
+default space looks corrupted...
+Overwrite the .space file at %s with this:
+
+{
+	"Key": "default",
+	"Accounts": {
+		"Logins": {},
+		"AwsConsoles": {},
+		"AwsApiAccesses": {}
+	}
+}
+
+Or execute sherlock setup --overwrite
+		`, filepath.Join(defaultPath, spacefile))
+
+	}
+	return nil
 }
 
 func (fs Filesystem) Write(key string, s Serializer) error {

@@ -8,7 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func cmdSetup(ctx context.Context, initer core.Initializer) *cobra.Command {
+func cmdSetup(ctx context.Context, sh *core.Sherlock) *cobra.Command {
 	return &cobra.Command{
 		Use:   "setup",
 		Short: "setup allows to initially set-up a main password for your vault",
@@ -24,7 +24,7 @@ func cmdSetup(ctx context.Context, initer core.Initializer) *cobra.Command {
 				return
 			}
 
-			if err := core.InitSherlock(passphrase, initer); err != nil {
+			if err := sh.Init(passphrase); err != nil {
 				out.Error(err.Error())
 				return
 			}
