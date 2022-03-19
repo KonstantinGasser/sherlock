@@ -2,7 +2,16 @@ package account
 
 import "github.com/KonstantinGasser/sherlock/security"
 
+type Type string
+
+const (
+	LoginT        = "LOGIN"
+	AwsConsoleT   = "AWS-CONSOLE"
+	AwsApiAccessT = "AWS-API-ACCESS"
+)
+
 type Account interface {
+	Type() Type
 	Finder
 	EncryptDecrypter
 }

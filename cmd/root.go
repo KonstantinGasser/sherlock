@@ -6,12 +6,14 @@ package cmd
 
 import (
 	"context"
-	"fmt"
 
+	"github.com/KonstantinGasser/sherlock/core"
+	"github.com/KonstantinGasser/sherlock/fs"
+	"github.com/spf13/afero"
 	"github.com/spf13/cobra"
 )
 
-func RootCommand(notThereYet interface{}) *cobra.Command {
+func RootCommand(sh *core.Sherlock) *cobra.Command {
 	root := &cobra.Command{
 		Use:           "sherlock",
 		Short:         "simple to use encrypted password and file CLI tool",
@@ -19,7 +21,7 @@ func RootCommand(notThereYet interface{}) *cobra.Command {
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
-			return fmt.Errorf("not yet implemented")
+			return nil
 		},
 		Run: func(cmd *cobra.Command, args []string) {
 			_ = cmd.Help()
@@ -27,7 +29,7 @@ func RootCommand(notThereYet interface{}) *cobra.Command {
 	}
 
 	ctx := context.Background()
-	root.AddCommand(cmdSetup(ctx, nil))
-	root.AddCommand(cmdAdd(ctx, nil))
+	root.AddCommand(cmdSetup(ctx, fs.New(afero.NewOsFs())))
+	root.AddCommand(cmdAdd(ctx, sh))
 	return root
 }

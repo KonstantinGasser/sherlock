@@ -10,6 +10,8 @@ type AwsApiAccesses map[string]*AwsApiAccess
 
 func DefaultAwsAccesses() *AwsApiAccesses { return new(AwsApiAccesses) }
 
+func (consoles AwsApiAccesses) Type() Type { return AwsApiAccessT }
+
 func (accesses AwsApiAccesses) Encrypt(encry security.Encrypter, passpharase string) (map[string][]byte, error) {
 	out := make(map[string][]byte)
 

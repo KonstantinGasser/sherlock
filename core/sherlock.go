@@ -3,6 +3,7 @@ package core
 import (
 	"fmt"
 
+	"github.com/KonstantinGasser/sherlock/core/account"
 	"github.com/KonstantinGasser/sherlock/core/space"
 )
 
@@ -19,7 +20,9 @@ type Sherlock struct {
 // NewSherlock returns a new Sherlock instance.
 func NewSherlock(fs SherlockFS) (*Sherlock, error) {
 
-	return nil, fmt.Errorf("not implemented yet")
+	return &Sherlock{
+		fs: fs,
+	}, nil
 }
 
 // InitSherlock initializes the sherlock cli
@@ -34,14 +37,10 @@ func InitSherlock(passphrase string, initer Initializer) error {
 		return err
 	}
 
-	b, err := defaultSpace.Serialize()
-	if err != nil {
-		return fmt.Errorf("could not serialize Space: %v", err)
-	}
-	return initer.Initialize(defaultSpace.Key, b)
+	return initer.Initialize(defaultSpace.Key, defaultSpace)
 }
 
-func (sh Sherlock) CreateSpace(passphrase string, key string) error {
+func (sh Sherlock) AddSpace(passphrase string, key string) error {
 
 	s, err := space.New(key).ToCipherSpace(passphrase)
 	if err != nil {
@@ -63,4 +62,25 @@ func (sh Sherlock) GetSpace(passphrase string, key string) (*space.Space, error)
 	}
 
 	return cSpace.ToSpace(passphrase)
+}
+
+func (sh Sherlock) AddAccount(spaceKey string, passphrase string, acc account.Account) error {
+
+	b, err := sh.fs.Read(spaceKey)
+	if err != nil {
+		return err
+	}
+
+	var cSpace = space.NewCipher(spaceKey)
+	if err := cSpace.Deserialize(b); err != nil {
+		return fmt.Errorf("could not deserialize space: %v", err)
+	}
+
+	space, err := cSpace.ToSpace(passphrase)
+	if err != nil {
+		return fmt.Errorf("could not decrypt space: %v", err)
+	}
+	space.Add(acc)
+
+	return nil
 }

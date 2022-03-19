@@ -16,6 +16,8 @@ const (
 	// spacespath is the path in which all user created
 	// spaces are stored, including the default space
 	spacespath = "spaces"
+	// spacefile is the file name in which a space is stored
+	spacefile = ".space"
 	// filespath is the path in which encrypted files within
 	// a space will be stored
 	filespaths = "files"
@@ -53,7 +55,7 @@ func New(fs afero.Fs) *Filesystem {
 //
 // under the sherlock-root `.sherlock` the folder `spaces` with a `default`
 // space will be created. If
-func (fs Filesystem) Initialize(key string, space []byte) error {
+func (fs Filesystem) Initialize(key string, s Serializer) error {
 
 	defaultPath, err := spacepath(key)
 	if err != nil {
@@ -71,11 +73,19 @@ func (fs Filesystem) Initialize(key string, space []byte) error {
 	}
 
 	// write space in default namespace
-	return fs.Write(key, space)
+	return fs.Write(key, s)
 }
 
-func (fs Filesystem) Write(key string, space []byte) error {
-	return fmt.Errorf("not implemented yet")
+func (fs Filesystem) Write(key string, s Serializer) error {
+	path, err := spacepath(key)
+	if err != nil {
+		return err
+	}
+	data, err := s.Serialize()
+	if err != nil {
+		return err
+	}
+	return os.WriteFile(filepath.Join(path, spacefile), data, 0700)
 }
 
 func (fs Filesystem) Read(key string) ([]byte, error) {

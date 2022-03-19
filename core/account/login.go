@@ -11,6 +11,8 @@ type Logins map[string]*Login
 
 func DefaultLogins() *Logins { return new(Logins) }
 
+func (login Logins) Type() Type { return LoginT }
+
 func (logins Logins) Find(key string, v interface{}) error {
 	login, ok := logins[key]
 	if !ok {

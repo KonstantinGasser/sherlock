@@ -10,6 +10,8 @@ type AwsConsoles map[string]*AwsConsole
 
 func DefaultAwsConsoles() *AwsConsoles { return new(AwsConsoles) }
 
+func (consoles AwsConsoles) Type() Type { return AwsConsoleT }
+
 func (consoles AwsConsoles) Encrypt(encry security.Encrypter, passpharase string) (map[string][]byte, error) {
 	out := make(map[string][]byte)
 

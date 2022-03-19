@@ -68,6 +68,24 @@ func New(key string) *Space {
 	}
 }
 
+func (space *Space) Add(acc account.Account) error {
+
+	var accounts account.Account
+	switch acc.Type() {
+	case account.LoginT:
+		accounts = space.Accounts.Logins
+	case account.AwsConsoleT:
+		accounts = space.Accounts.AwsConsoles
+	case account.AwsApiAccessT:
+		accounts = space.Accounts.AwsApiAccesses
+	default:
+		return fmt.Errorf("unknown account type: %q", acc.Type())
+	}
+
+	fmt.Println(accounts)
+	return nil
+}
+
 func (space Space) ToCipherSpace(passphrase string) (*CipherSpace, error) {
 
 	loginsEncry, err := space.Accounts.Logins.Encrypt(space.guardian, passphrase)

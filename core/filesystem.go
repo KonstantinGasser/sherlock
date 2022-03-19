@@ -23,5 +23,5 @@ type SherlockFS interface {
 }
 
 type Initializer interface {
-	Initialize(key string, sapce []byte) error
+	Initialize(key string, s fs.Serializer) error
 }

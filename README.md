@@ -1,4 +1,4 @@
-# 🕵️‍♀️🕵️   sherlock ![Go Report Card](https://goreportcard.com/badge/github.com/KonstantinGasser/sherlock) [![Build Status](https://travis-ci.com/KonstantinGasser/sherlock.svg?branch=main)](https://travis-ci.com/KonstantinGasser/sherlock)
+# sherlock ![Go Report Card](https://goreportcard.com/badge/github.com/KonstantinGasser/sherlock) [![Build Status](https://travis-ci.com/KonstantinGasser/sherlock.svg?branch=main)](https://travis-ci.com/KonstantinGasser/sherlock)
 
 > ***simple*** and ***easy*** CLI password manager
 

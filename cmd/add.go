@@ -42,7 +42,7 @@ func cmdAddSpace(ctx context.Context, sh *core.Sherlock) *cobra.Command {
 				return
 			}
 
-			if err := sh.CreateSpace(passphrase, spaceName); err != nil {
+			if err := sh.AddSpace(passphrase, spaceName); err != nil {
 				out.Error(err.Error())
 				return
 			}
