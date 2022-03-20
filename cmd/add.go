@@ -35,7 +35,10 @@ func cmdAddSpace(ctx context.Context, sh *core.Sherlock) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 
 			spaceName := args[0]
-
+			if ok := sh.HasSpace(spaceName); ok {
+				out.Error("space already exists")
+				return
+			}
 			passphrase, err := out.ReadPassword("set passphrase for space %q: ", spaceName)
 			if err != nil {
 				out.Error(err.Error())

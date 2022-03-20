@@ -74,10 +74,11 @@ func New(fs afero.Fs) *Filesystem {
 	}
 }
 
-// Initialize initializes the required folder structure for sherlock
+// Init initializes the required folder structure for sherlock
 //
 // under the sherlock-root `.sherlock` the folder `spaces` with a `default`
-// space will be created. If
+// space will be created. With the overwrite flag an already setup sherlock
+// instance can be overwritten
 func (fs Filesystem) Init(key string, overwrite bool, s Serializer) error {
 
 	defaultPath, err := spacepath(key)
@@ -91,7 +92,7 @@ func (fs Filesystem) Init(key string, overwrite bool, s Serializer) error {
 	}
 	// ensure sherlock folder structure is created
 	// 0770 only current user can read/write/execute
-	if err := os.MkdirAll(defaultPath, 0770); err != nil {
+	if err := fs.fs.MkdirAll(defaultPath, 0770); err != nil {
 		return fmt.Errorf("could not create sherlock folder structure: %v", err)
 	}
 
@@ -99,6 +100,11 @@ func (fs Filesystem) Init(key string, overwrite bool, s Serializer) error {
 	return fs.Write(key, s)
 }
 
+// IsSetup verifies the state of sherlock
+//
+// if all is ok (all directories and the default space exists in a ok condition)
+// the function returns nil. In other cases IsSetup returns an error that directories
+// are missing or that the default space is corrupted
 func (fs Filesystem) IsSetup() error {
 	defaultPath, err := spacepath(defaultSpace)
 	if err != nil {
@@ -111,7 +117,7 @@ func (fs Filesystem) IsSetup() error {
 
 	// make sure default space is not empty
 	// and content is valid JSON
-	b, err := os.ReadFile(filepath.Join(defaultPath, spacefile))
+	b, err := afero.ReadFile(fs.fs, filepath.Join(defaultPath, spacefile))
 	if err != nil {
 		return ErrNoSpaceFound
 	}
@@ -121,6 +127,32 @@ func (fs Filesystem) IsSetup() error {
 		return ErrCorruptedSpace
 	}
 	return nil
+}
+
+func IrgnoreExisiting(path string) error {
+
+	if _, err := os.Stat(path); err != nil {
+		return nil
+	}
+
+	return fmt.Errorf("path already exists")
+}
+
+// Mkdir creates a new space directory with the permissions
+// of 0700
+func (fs Filesystem) Mkdir(space string, opts ...func(path string) error) error {
+	path, err := spacepath(space)
+	if err != nil {
+		return err
+	}
+
+	for _, opt := range opts {
+		if err := opt(path); err != nil {
+			return fmt.Errorf("did not create %s: %v", path, err)
+		}
+	}
+
+	return fs.fs.Mkdir(path, 0700)
 }
 
 func (fs Filesystem) Write(key string, s Serializer) error {
@@ -155,6 +187,14 @@ func spacepath(key string) (string, error) {
 func userhome() (string, error) {
 	// return os.UserHomeDir()
 	return "./", nil // for testing
+}
+
+func (fs Filesystem) SpaceExists(key string) bool {
+	path, err := spacepath(key)
+	if err != nil {
+		return true // not good but ok for now; what does an error here mean?
+	}
+	return exists(path)
 }
 
 func exists(path string) bool {

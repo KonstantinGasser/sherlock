@@ -22,6 +22,7 @@ func main() {
 		out.Error("could not create sherlock: %v", err)
 		os.Exit(1)
 	}
+
 	if err := cmd.RootCommand(sh).Execute(); err != nil {
 		out.Error(err.Error())
 		os.Exit(1)

@@ -1,6 +1,8 @@
 package core
 
-import "github.com/KonstantinGasser/sherlock/fs"
+import (
+	"github.com/KonstantinGasser/sherlock/fs"
+)
 
 // Writer interface allows the any resource to
 // persist data in the filesystem under a given key.
@@ -17,9 +19,17 @@ type Reader interface {
 	Read(key string) ([]byte, error)
 }
 
+// Mkdirer interface describes a resource which is able
+// to create a directory
+type Mkdirer interface {
+	Mkdir(spaceKey string, opts ...func(path string) error) error
+}
+
 type SherlockFS interface {
 	Writer
 	Reader
+	Mkdirer
 	Init(key string, overwrite bool, s fs.Serializer) error
 	IsSetup() error
+	SpaceExists(key string) bool
 }
