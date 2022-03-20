@@ -27,6 +27,25 @@ const (
 	defaultSpace = "default"
 )
 
+var (
+	ErrNotSetup       = fmt.Errorf("file system with %s directory not setup", basepath)
+	ErrNoSpaceFound   = fmt.Errorf("missing %s in space", spacefile)
+	ErrCorruptedSpace = fmt.Errorf(`default space looks corrupted...
+Overwrite the .space file at %s with this:
+
+{
+	"Key": "default",
+	"Accounts": {
+		"Logins": {},
+		"AwsConsoles": {},
+		"AwsApiAccesses": {}
+	}
+}
+
+Or execute sherlock setup --overwrite
+			`, filepath.Join("~/.sherlock/spaces/default", spacefile))
+)
+
 type Serializer interface {
 	Serialize() ([]byte, error)
 }
@@ -59,7 +78,7 @@ func New(fs afero.Fs) *Filesystem {
 //
 // under the sherlock-root `.sherlock` the folder `spaces` with a `default`
 // space will be created. If
-func (fs Filesystem) Init(key string, s Serializer) error {
+func (fs Filesystem) Init(key string, overwrite bool, s Serializer) error {
 
 	defaultPath, err := spacepath(key)
 	if err != nil {
@@ -67,7 +86,7 @@ func (fs Filesystem) Init(key string, s Serializer) error {
 	}
 
 	// do nothing if sherlock is already initialized
-	if exists(defaultPath) {
+	if exists(defaultPath) && !overwrite {
 		return nil
 	}
 	// ensure sherlock folder structure is created
@@ -87,33 +106,19 @@ func (fs Filesystem) IsSetup() error {
 	}
 	// make sure directories required exists
 	if !exists(defaultPath) {
-		return fmt.Errorf("default space not found")
+		return ErrNotSetup
 	}
 
-	// make sure default space is not empty (TODO: check if default space is ok and not corrupted)
+	// make sure default space is not empty
+	// and content is valid JSON
 	b, err := os.ReadFile(filepath.Join(defaultPath, spacefile))
 	if err != nil {
-		return fmt.Errorf("could not read default space")
+		return ErrNoSpaceFound
 	}
 
 	var tmp map[string]interface{} // used to check if file has valid JSON
 	if err := json.Unmarshal(b, &tmp); err != nil {
-		return fmt.Errorf(`
-default space looks corrupted...
-Overwrite the .space file at %s with this:
-
-{
-	"Key": "default",
-	"Accounts": {
-		"Logins": {},
-		"AwsConsoles": {},
-		"AwsApiAccesses": {}
-	}
-}
-
-Or execute sherlock setup --overwrite
-		`, filepath.Join(defaultPath, spacefile))
-
+		return ErrCorruptedSpace
 	}
 	return nil
 }
@@ -138,6 +143,7 @@ func (fs Filesystem) Read(key string) ([]byte, error) {
 // can be found.
 // While the base of the path is always the same
 // the actual space directory depends on the space.Key
+// example: /Users/username/.sherlock/spaces/<key>
 func spacepath(key string) (string, error) {
 	home, err := userhome()
 	if err != nil {

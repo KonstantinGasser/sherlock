@@ -20,6 +20,6 @@ type Reader interface {
 type SherlockFS interface {
 	Writer
 	Reader
-	Init(key string, s fs.Serializer) error
+	Init(key string, overwrite bool, s fs.Serializer) error
 	IsSetup() error
 }
